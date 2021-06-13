@@ -38,6 +38,15 @@ export class Renderer {
                 )}\`);
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator"), options);
                 ${expressions.join("")}
+
+                calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
+                    document.head.innerHTML = "";
+                    document.body.innerHTML = "";
+
+                    const img = document.createElement("img");
+                    img.src = data;
+                    document.body.appendChild(img);
+                });
             </script>
         `;
         const html_src = `<html><head>${html_src_head}</head><body>${html_src_body}</body>`;
