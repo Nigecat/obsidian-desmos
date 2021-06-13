@@ -1,4 +1,5 @@
 import { Plugin } from "obsidian";
+import { Renderer } from "./renderer";
 import { Settings, SettingsTab, DEFAULT_SETTINGS } from "./settings";
 
 export default class Desmos extends Plugin {
@@ -7,6 +8,10 @@ export default class Desmos extends Plugin {
     async onload() {
         await this.loadSettings();
 
+        this.registerMarkdownCodeBlockProcessor(
+            "desmos-graph",
+            Renderer.handler
+        );
         this.addSettingTab(new SettingsTab(this.app, this));
     }
 

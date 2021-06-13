@@ -6,13 +6,28 @@
       {
         "id": "1b6875bb986593eb",
         "type": "leaf",
+        "dimension": 33.699421965317924,
         "state": {
           "type": "markdown",
           "state": {
             "file": "test.md",
             "mode": "source"
           }
-        }
+        },
+        "group": "d4cc7f7d128bfd59"
+      },
+      {
+        "id": "c00e73239c402fd7",
+        "type": "leaf",
+        "dimension": 66.30057803468208,
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "test.md",
+            "mode": "preview"
+          }
+        },
+        "group": "d4cc7f7d128bfd59"
       }
     ],
     "direction": "vertical"
@@ -52,7 +67,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "2d340263c55c1311",
