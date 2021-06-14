@@ -12,7 +12,7 @@ export default class Desmos extends Plugin {
             "desmos-graph",
             Renderer.handler
         );
-        this.addSettingTab(new SettingsTab(this.app, this));
+        // this.addSettingTab(new SettingsTab(this.app, this));
     }
 
     async loadSettings() {
