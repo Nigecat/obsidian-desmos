@@ -1,9 +1,18 @@
+import { createHash } from "crypto";
+
 export class Dsl {
+    /// A (hex) SHA-256 hash of the fields of this object
+    public hash: string;
+
     private constructor(
-        public height: string = "400",
-        public width: string = "600",
-        public equations: string[] = []
-    ) {}
+        public readonly width: string = "600",
+        public readonly height: string = "400",
+        public readonly equations: string[] = []
+    ) {
+        this.hash = createHash("sha256")
+            .update(`(${width}x${height})-${equations}`)
+            .digest("hex");
+    }
 
     static parse(source: string): Dsl {
         const split = source.split("---");
@@ -35,6 +44,6 @@ export class Dsl {
                       }, {} as Record<string, string>)
                 : {};
 
-        return new Dsl(settings.height, settings.width, equations);
+        return new Dsl(settings.width, settings.height, equations);
     }
 }
