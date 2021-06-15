@@ -1,5 +1,7 @@
+import { Dsl } from "./dsl";
 import { Plugin } from "obsidian";
 import { Renderer } from "./renderer";
+import { renderError } from "./error";
 import { Settings, SettingsTab, DEFAULT_SETTINGS } from "./settings";
 
 export default class Desmos extends Plugin {
@@ -10,9 +12,15 @@ export default class Desmos extends Plugin {
 
         this.registerMarkdownCodeBlockProcessor(
             "desmos-graph",
-            Renderer.handler
+            (source, el, _) => {
+                try {
+                    Renderer.render(Dsl.parse(source), this.settings, el);
+                } catch (err) {
+                    renderError(err.message, el);
+                }
+            }
         );
-        // this.addSettingTab(new SettingsTab(this.app, this));
+        this.addSettingTab(new SettingsTab(this.app, this));
     }
 
     async loadSettings() {

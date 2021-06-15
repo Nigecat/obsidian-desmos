@@ -1,34 +1,26 @@
-import { MarkdownPostProcessorContext } from "obsidian";
+import { Dsl } from "./dsl";
+import { Settings } from "./settings";
+
+const CALCULATOR_SETTINGS = {
+    settingsMenu: false,
+    expressions: false,
+    lockViewPort: true,
+    zoomButtons: false,
+    trace: false,
+};
 
 export class Renderer {
-    static handler(
-        source: string,
-        el: HTMLElement,
-        ctx: MarkdownPostProcessorContext
-    ) {
-        const lines = source.split("\n");
-
-        // todo grab these values from the dsl parser
-        const width = "600";
-        const height = "400";
-
-        const equations = lines
-            .slice(lines.findIndex((row) => row == "---") + 1, -1)
-            .map((equation) => equation.replace("\\", "\\\\"));
-
-        // ----------------------------------------
-
-        const CALCULATOR_SETTINGS = {
-            settingsMenu: false,
-            expressions: false,
-            lockViewPort: true,
-            zoomButtons: false,
-            trace: false,
-        };
+    static render(args: Dsl, settings: Settings, el: HTMLElement) {
+        const { height, width, equations } = args;
 
         const expressions = equations.map(
-            (equation) => `calculator.setExpression({ latex: "${equation}" });`
+            (equation) =>
+                `calculator.setExpression({ latex: "${equation.replace(
+                    "\\",
+                    "\\\\"
+                )}" });`
         );
+
         const html_src_head = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const html_src_body = `
             <div id="calculator" style="width: ${width}px; height: ${height}px;"></div>
@@ -55,7 +47,7 @@ export class Renderer {
         iframe.width = width;
         iframe.height = height;
         iframe.style.border = "none";
-        iframe.scrolling = "no"; // fixme shhhhh I know it's depreciated but it works
+        iframe.scrolling = "no"; // fixme use a non-depreciated function
         iframe.srcdoc = html_src;
         el.appendChild(iframe);
     }
