@@ -62,7 +62,7 @@ export class Renderer {
 
                 calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
                     document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", data, hash: "${hash}" }, "app://obsidian.md");                    
+                    parent.postMessage({ t: "desmos-graph", data }, "app://obsidian.md");                    
                 });
             </script>
         `;
@@ -79,13 +79,13 @@ export class Renderer {
         el.appendChild(iframe);
 
         const handler = (
-            message: MessageEvent<{ t: string; data: string; hash: string }>
+            message: MessageEvent<{ t: string; data: string }>
         ) => {
             if (
                 message.origin === "app://obsidian.md" &&
                 message.data.t === "desmos-graph"
             ) {
-                const { hash, data } = message.data;
+                const { data } = message.data;
                 window.removeEventListener("message", handler);
 
                 const img = document.createElement("img");
