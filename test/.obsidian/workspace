@@ -67,8 +67,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "2d340263c55c1311",
@@ -102,9 +101,10 @@
     "width": 300,
     "collapsed": true
   },
-  "active": "c00e73239c402fd7",
+  "active": "1b6875bb986593eb",
   "lastOpenFiles": [
     "test.md",
-    "Untitled.md"
+    "Untitled.md",
+    "desmos-graph-88a48272e386f8622f78b6ac8fcc33c2f271c4464b13c8110753a0f5df8d2ade.png"
   ]
 }

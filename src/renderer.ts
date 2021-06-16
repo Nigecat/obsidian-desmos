@@ -1,20 +1,38 @@
+import path from "path";
 import { Dsl } from "./dsl";
+import { tmpdir } from "os";
+import { Notice } from "obsidian";
 import { Settings } from "./settings";
-
-const CALCULATOR_SETTINGS = {
-    settingsMenu: false,
-    expressions: false,
-    lockViewPort: true,
-    zoomButtons: false,
-    trace: false,
-};
+import { existsSync, promises as fs } from "fs";
 
 export class Renderer {
-    static render(args: Dsl, settings: Settings, el: HTMLElement) {
-        const { height, width, equations, hash } = args; // fixme dimensions are ignored with caching enabled
+    static render(
+        args: Dsl,
+        settings: Settings,
+        el: HTMLElement,
+        vault_root: string
+    ) {
+        const { height, width, equations, hash } = args;
 
-        if (settings.cache) {
-            // todo cache the graph
+        const cache_dir = settings.cache_directory
+            ? path.isAbsolute(settings.cache_directory)
+                ? settings.cache_directory
+                : path.join(vault_root, settings.cache_directory)
+            : tmpdir();
+
+        const cache_target = path.join(cache_dir, `desmos-graph-${hash}.png`);
+
+        // If this graph is in the cache then fetch it
+        if (settings.cache && existsSync(cache_target)) {
+            fs.readFile(cache_target).then((data) => {
+                const b64 =
+                    "data:image/png;base64," +
+                    Buffer.from(data).toString("base64");
+                const img = document.createElement("img");
+                img.src = b64;
+                el.appendChild(img);
+            });
+            return;
         }
 
         const expressions = equations.map(
@@ -31,25 +49,20 @@ export class Renderer {
         const html_src_body = `
             <div id="calculator" style="width: ${width}px; height: ${height}px;"></div>
             <script>
-                const cache = ${settings.cache};
+                const options = {
+                    settingsMenu: false,
+                    expressions: false,
+                    lockViewPort: true,
+                    zoomButtons: false,
+                    trace: false,
+                };
 
-                const options = JSON.parse(\`${JSON.stringify(
-                    CALCULATOR_SETTINGS
-                )}\`);
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator"), options);
                 ${expressions.join("")}
 
-                calculator.asyncScreenshot({ showLabels: true, format: cache ? "svg" : "png" }, (data) => {
-                    if (cache) {
-                        parent.postMessage({ t: "desmos-graph", data, hash: "${hash}" }, "app://obsidian.md");                    
-                    } else {
-                        document.head.innerHTML = "";
-                        document.body.innerHTML = "";
-
-                        const img = document.createElement("img");
-                        img.src = data;
-                        document.body.appendChild(img);
-                    }
+                calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
+                    document.body.innerHTML = "";
+                    parent.postMessage({ t: "desmos-graph", data, hash: "${hash}" }, "app://obsidian.md");                    
                 });
             </script>
         `;
@@ -61,31 +74,48 @@ export class Renderer {
         iframe.style.border = "none";
         iframe.scrolling = "no"; // fixme use a non-depreciated function
         iframe.srcdoc = html_src;
-
-        if (settings.cache) {
-            iframe.style.display = "none";
-        }
+        // iframe.style.display = "none"; //fixme hiding the iframe breaks the positioning
 
         el.appendChild(iframe);
 
-        if (settings.cache) {
-            const handler = (
-                message: MessageEvent<{ t: string; data: string; hash: string }>
-            ) => {
-                if (
-                    message.origin === "app://obsidian.md" &&
-                    message.data.t === "desmos-graph"
-                ) {
-                    const { hash, data } = message.data;
-                    // todo cache the graph
-                    console.log(`Got graph ${hash} with data: ${data}`);
-                    window.removeEventListener("message", handler);
+        const handler = (
+            message: MessageEvent<{ t: string; data: string; hash: string }>
+        ) => {
+            if (
+                message.origin === "app://obsidian.md" &&
+                message.data.t === "desmos-graph"
+            ) {
+                const { hash, data } = message.data;
+                window.removeEventListener("message", handler);
 
-                    el.innerHTML = data;
+                const img = document.createElement("img");
+                img.src = data;
+                el.empty();
+                el.appendChild(img);
+
+                if (settings.cache) {
+                    if (existsSync(cache_dir)) {
+                        fs.writeFile(
+                            cache_target,
+                            data.replace(/^data:image\/png;base64,/, ""),
+                            "base64"
+                        ).catch(
+                            (err) =>
+                                new Notice(
+                                    `desmos-graph: unexpected error when trying to cache graph: ${err}`,
+                                    10000
+                                )
+                        );
+                    } else {
+                        new Notice(
+                            `desmos-graph: cache directory not found: '${cache_dir}'`,
+                            10000
+                        );
+                    }
                 }
-            };
+            }
+        };
 
-            window.addEventListener("message", handler);
-        }
+        window.addEventListener("message", handler);
     }
 }

@@ -14,7 +14,14 @@ export default class Desmos extends Plugin {
             "desmos-graph",
             (source, el, _) => {
                 try {
-                    Renderer.render(Dsl.parse(source), this.settings, el);
+                    const vault_root: string = (this.app.vault.adapter as any)
+                        .basePath;
+                    Renderer.render(
+                        Dsl.parse(source),
+                        this.settings,
+                        el,
+                        vault_root
+                    );
                 } catch (err) {
                     renderError(err.message, el);
                 }
