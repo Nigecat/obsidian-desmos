@@ -6,7 +6,6 @@
       {
         "id": "1b6875bb986593eb",
         "type": "leaf",
-        "dimension": 33.699421965317924,
         "state": {
           "type": "markdown",
           "state": {
@@ -14,12 +13,11 @@
             "mode": "source"
           }
         },
-        "group": "d4cc7f7d128bfd59"
+        "group": "e108316061d4681a"
       },
       {
-        "id": "c00e73239c402fd7",
+        "id": "431a7eaddab1ba6a",
         "type": "leaf",
-        "dimension": 66.30057803468208,
         "state": {
           "type": "markdown",
           "state": {
@@ -27,7 +25,7 @@
             "mode": "preview"
           }
         },
-        "group": "d4cc7f7d128bfd59"
+        "group": "e108316061d4681a"
       }
     ],
     "direction": "vertical"

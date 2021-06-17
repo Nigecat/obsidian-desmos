@@ -58,6 +58,13 @@ export class Renderer {
                 };
 
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator"), options);
+                calculator.setMathBounds({
+                    left: ${args.boundry_left},
+                    right: ${args.boundry_right},
+                    top: ${args.boundry_top},
+                    bottom: ${args.boundry_bottom},
+                });
+                
                 ${expressions.join("")}
 
                 calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
@@ -69,8 +76,8 @@ export class Renderer {
         const html_src = `<html><head>${html_src_head}</head><body>${html_src_body}</body>`;
 
         const iframe = document.createElement("iframe");
-        iframe.width = width;
-        iframe.height = height;
+        iframe.width = width.toString();
+        iframe.height = height.toString();
         iframe.style.border = "none";
         iframe.scrolling = "no"; // fixme use a non-depreciated function
         iframe.srcdoc = html_src;

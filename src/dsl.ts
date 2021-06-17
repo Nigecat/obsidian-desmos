@@ -5,12 +5,27 @@ export class Dsl {
     public hash: string;
 
     private constructor(
-        public readonly width: string = "600",
-        public readonly height: string = "400",
-        public readonly equations: string[] = []
+        public readonly equations: string[] = [],
+        public readonly width: number = 600,
+        public readonly height: number = 400,
+        public readonly boundry_left = -10,
+        public readonly boundry_right = 10,
+        public readonly boundry_bottom = -7,
+        public readonly boundry_top = 7
     ) {
         this.hash = createHash("sha256")
-            .update(`(${width}x${height})-${equations}`)
+            .update(
+                equations
+                    .join(",")
+                    .concat(
+                        width.toString(),
+                        height.toString(),
+                        boundry_left.toString(),
+                        boundry_right.toString(),
+                        boundry_bottom.toString(),
+                        boundry_top.toString()
+                    )
+            )
             .digest("hex");
     }
 
@@ -44,6 +59,27 @@ export class Dsl {
                       }, {} as Record<string, string>)
                 : {};
 
-        return new Dsl(settings.width, settings.height, equations);
+        // Ensure boundaries are complete
+        // (basically ensure if we have one value then we also have the other)
+        if (!!settings.boundry_left == !settings.boundry_right) {
+            throw new SyntaxError(
+                "Incomplete boundaries: If you specify one boundry you must also specify the other (boundry_left, boundry_right"
+            );
+        }
+        if (!!settings.boundry_bottom == !settings.boundry_top) {
+            throw new SyntaxError(
+                "Incomplete boundaries: If you specify one boundry you must also specify the other (boundry_bottom, boundry_top"
+            );
+        }
+
+        return new Dsl(
+            equations,
+            parseInt(settings.width) || undefined,
+            parseInt(settings.height) || undefined,
+            parseInt(settings.boundry_left) || undefined,
+            parseInt(settings.boundry_right) || undefined,
+            parseInt(settings.boundry_top) || undefined,
+            parseInt(settings.boundry_bottom) || undefined
+        );
     }
 }

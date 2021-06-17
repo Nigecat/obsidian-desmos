@@ -1,3 +1,4 @@
 ```desmos-graph
-y=x
+---
+y=\sin(x)
 ```
