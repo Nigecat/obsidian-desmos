@@ -1,4 +1,5 @@
 import path from "path";
+import Desmos from "./main";
 import { Dsl } from "./dsl";
 import { tmpdir } from "os";
 import { Notice } from "obsidian";
@@ -11,29 +12,44 @@ export class Renderer {
         args: Dsl,
         settings: Settings,
         el: HTMLElement,
-        vault_root: string
+        plugin: Desmos
     ) {
         const { height, width, equations, hash } = args;
 
+        // Calculate cache info for filesystem caching
+        const vault_root = (plugin.app.vault.adapter as any).basePath;
         const cache_dir = settings.cache_directory
             ? path.isAbsolute(settings.cache_directory)
                 ? settings.cache_directory
                 : path.join(vault_root, settings.cache_directory)
             : tmpdir();
-
         const cache_target = path.join(cache_dir, `desmos-graph-${hash}.png`);
 
         // If this graph is in the cache then fetch it
-        if (settings.cache && existsSync(cache_target)) {
-            fs.readFile(cache_target).then((data) => {
-                const b64 =
-                    "data:image/png;base64," +
-                    Buffer.from(data).toString("base64");
+        if (settings.cache) {
+            if (
+                settings.cache_location == "memory" &&
+                hash in plugin.graph_cache
+            ) {
+                const data = plugin.graph_cache[hash];
                 const img = document.createElement("img");
-                img.src = b64;
+                img.src = data;
                 el.appendChild(img);
-            });
-            return;
+                return;
+            } else if (
+                settings.cache_location == "filesystem" &&
+                existsSync(cache_target)
+            ) {
+                fs.readFile(cache_target).then((data) => {
+                    const b64 =
+                        "data:image/png;base64," +
+                        Buffer.from(data).toString("base64");
+                    const img = document.createElement("img");
+                    img.src = b64;
+                    el.appendChild(img);
+                });
+                return;
+            }
         }
 
         const expressions = equations.map(
@@ -117,23 +133,30 @@ export class Renderer {
                     el.appendChild(img);
 
                     if (settings.cache) {
-                        if (existsSync(cache_dir)) {
-                            fs.writeFile(
-                                cache_target,
-                                data.replace(/^data:image\/png;base64,/, ""),
-                                "base64"
-                            ).catch(
-                                (err) =>
-                                    new Notice(
-                                        `desmos-graph: unexpected error when trying to cache graph: ${err}`,
-                                        10000
-                                    )
-                            );
-                        } else {
-                            new Notice(
-                                `desmos-graph: cache directory not found: '${cache_dir}'`,
-                                10000
-                            );
+                        if (settings.cache_location == "memory") {
+                            plugin.graph_cache[hash] = data;
+                        } else if (settings.cache_location == "filesystem") {
+                            if (existsSync(cache_dir)) {
+                                fs.writeFile(
+                                    cache_target,
+                                    data.replace(
+                                        /^data:image\/png;base64,/,
+                                        ""
+                                    ),
+                                    "base64"
+                                ).catch(
+                                    (err) =>
+                                        new Notice(
+                                            `desmos-graph: unexpected error when trying to cache graph: ${err}`,
+                                            10000
+                                        )
+                                );
+                            } else {
+                                new Notice(
+                                    `desmos-graph: cache directory not found: '${cache_dir}'`,
+                                    10000
+                                );
+                            }
                         }
                     }
                 }

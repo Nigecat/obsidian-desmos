@@ -6,8 +6,11 @@ import { Settings, SettingsTab, DEFAULT_SETTINGS } from "./settings";
 
 export default class Desmos extends Plugin {
     settings: Settings;
+    /** Helper for in-memory graph caching */
+    graph_cache: Record<string, string>;
 
     async onload() {
+        this.graph_cache = {};
         await this.loadSettings();
         this.addSettingTab(new SettingsTab(this.app, this));
 
@@ -24,14 +27,7 @@ export default class Desmos extends Plugin {
 
         const render = (source: string, el: HTMLElement) => {
             try {
-                const vault_root: string = (this.app.vault.adapter as any)
-                    .basePath;
-                Renderer.render(
-                    Dsl.parse(source),
-                    this.settings,
-                    el,
-                    vault_root
-                );
+                Renderer.render(Dsl.parse(source), this.settings, el, this);
             } catch (err) {
                 renderError(err.message, el);
             }

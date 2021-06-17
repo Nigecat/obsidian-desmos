@@ -1,1 +1,1 @@
-{"debounce":200,"cache":false,"cache_directory":null}
+{"debounce":200,"cache":true,"cache_location":"memory","cache_directory":""}
