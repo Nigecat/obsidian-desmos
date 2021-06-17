@@ -8,9 +8,6 @@
         "build": "rollup --config rollup.config.js --environment BUILD:production",
         "build:dev": "rollup --config rollup.config.js -w"
     },
-    "dependencies": {
-        "debounce": "^1.2.1"
-    },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^19.0.0",
         "@rollup/plugin-node-resolve": "^13.0.0",

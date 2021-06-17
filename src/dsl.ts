@@ -74,8 +74,8 @@ export class Dsl {
             settings.height,
             settings.boundry_left,
             settings.boundry_right,
-            settings.boundry_top,
-            settings.boundry_bottom
+            settings.boundry_bottom,
+            settings.boundry_top
         );
     }
 }

@@ -3,11 +3,13 @@ import Desmos from "./main";
 import { PluginSettingTab, App, Setting } from "obsidian";
 
 export interface Settings {
+    debounce: number;
     cache: boolean;
     cache_directory: string | null;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+    debounce: 500,
     cache: false,
     cache_directory: null,
 };
@@ -24,6 +26,22 @@ export class SettingsTab extends PluginSettingTab {
         let { containerEl } = this;
 
         containerEl.empty();
+
+        new Setting(containerEl)
+            .setName("Debounce Time (ms)")
+            .setDesc(
+                "How long to wait after a keypress to display the graph (requires restart to take affect)"
+            )
+            .addText((text) =>
+                text
+                    .setValue(this.plugin.settings.debounce.toString())
+                    .onChange(async (value) => {
+                        const val = parseInt(value);
+                        this.plugin.settings.debounce =
+                            val === NaN ? DEFAULT_SETTINGS.debounce : val;
+                        await this.plugin.saveSettings();
+                    })
+            );
 
         new Setting(containerEl)
             .setName("Cache")

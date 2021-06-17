@@ -13,10 +13,10 @@
             "mode": "source"
           }
         },
-        "group": "e108316061d4681a"
+        "group": "c5be294fe81b8812"
       },
       {
-        "id": "431a7eaddab1ba6a",
+        "id": "50206dd26af2989b",
         "type": "leaf",
         "state": {
           "type": "markdown",
@@ -25,7 +25,7 @@
             "mode": "preview"
           }
         },
-        "group": "e108316061d4681a"
+        "group": "c5be294fe81b8812"
       }
     ],
     "direction": "vertical"
@@ -103,6 +103,9 @@
   "active": "1b6875bb986593eb",
   "lastOpenFiles": [
     "test.md",
+    "desmos-graph-8f0a4fae9ffc83eb4a37ad2a9761e3665e7f704a6d38098a8f072fca7b5dab73.png",
+    "a/b.md",
+    "dsd.md",
     "Untitled.md",
     "desmos-graph-88a48272e386f8622f78b6ac8fcc33c2f271c4464b13c8110753a0f5df8d2ade.png"
   ]
