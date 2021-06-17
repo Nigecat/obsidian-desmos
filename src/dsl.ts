@@ -54,19 +54,26 @@ export class Dsl {
                       .filter(Boolean) // remove any empty elements
                       .map((setting) => setting.split("=").map((e) => e.trim()))
                       .reduce((settings, setting) => {
-                          settings[setting[0]] = setting[1];
+                          const s = parseInt(setting[1]);
+                          settings[setting[0]] = s === NaN ? undefined : s;
                           return settings;
-                      }, {} as Record<string, string>)
+                      }, {} as Record<string, number>)
                 : {};
 
         // Ensure boundaries are complete
         // (basically ensure if we have one value then we also have the other)
-        if (!!settings.boundry_left == !settings.boundry_right) {
+        if (
+            (settings.boundry_left === undefined) ==
+            (settings.boundry_right != undefined)
+        ) {
             throw new SyntaxError(
                 "Incomplete boundaries: If you specify one boundry you must also specify the other (boundry_left, boundry_right"
             );
         }
-        if (!!settings.boundry_bottom == !settings.boundry_top) {
+        if (
+            (settings.boundry_bottom === undefined) ==
+            (settings.boundry_top != undefined)
+        ) {
             throw new SyntaxError(
                 "Incomplete boundaries: If you specify one boundry you must also specify the other (boundry_bottom, boundry_top"
             );
@@ -74,12 +81,12 @@ export class Dsl {
 
         return new Dsl(
             equations,
-            parseInt(settings.width) || undefined,
-            parseInt(settings.height) || undefined,
-            parseInt(settings.boundry_left) || undefined,
-            parseInt(settings.boundry_right) || undefined,
-            parseInt(settings.boundry_top) || undefined,
-            parseInt(settings.boundry_bottom) || undefined
+            settings.width,
+            settings.height,
+            settings.boundry_left,
+            settings.boundry_right,
+            settings.boundry_top,
+            settings.boundry_bottom
         );
     }
 }

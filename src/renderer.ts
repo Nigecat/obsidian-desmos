@@ -67,9 +67,13 @@ export class Renderer {
                 
                 ${expressions.join("")}
 
+                calculator.observe("expressionAnalysis", () => {
+                    // todo implement
+                });
+
                 calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
                     document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", data }, "app://obsidian.md");                    
+                    parent.postMessage({ t: "desmos-graph", d: "render", data }, "app://obsidian.md");                    
                 });
             </script>
         `;
@@ -86,38 +90,47 @@ export class Renderer {
         el.appendChild(iframe);
 
         const handler = (
-            message: MessageEvent<{ t: string; data: string }>
+            message: MessageEvent<{ t: string; d: string; data: string }>
         ) => {
             if (
                 message.origin === "app://obsidian.md" &&
                 message.data.t === "desmos-graph"
             ) {
-                const { data } = message.data;
-                window.removeEventListener("message", handler);
-
-                const img = document.createElement("img");
-                img.src = data;
                 el.empty();
-                el.appendChild(img);
 
-                if (settings.cache) {
-                    if (existsSync(cache_dir)) {
-                        fs.writeFile(
-                            cache_target,
-                            data.replace(/^data:image\/png;base64,/, ""),
-                            "base64"
-                        ).catch(
-                            (err) =>
-                                new Notice(
-                                    `desmos-graph: unexpected error when trying to cache graph: ${err}`,
-                                    10000
-                                )
-                        );
-                    } else {
-                        new Notice(
-                            `desmos-graph: cache directory not found: '${cache_dir}'`,
-                            10000
-                        );
+                if (message.data.d === "error") {
+                    const err = message.data.data;
+                    // todo render error
+                    console.error(err);
+                }
+
+                if (message.data.d === "render") {
+                    const { data } = message.data;
+                    window.removeEventListener("message", handler);
+
+                    const img = document.createElement("img");
+                    img.src = data;
+                    el.appendChild(img);
+
+                    if (settings.cache) {
+                        if (existsSync(cache_dir)) {
+                            fs.writeFile(
+                                cache_target,
+                                data.replace(/^data:image\/png;base64,/, ""),
+                                "base64"
+                            ).catch(
+                                (err) =>
+                                    new Notice(
+                                        `desmos-graph: unexpected error when trying to cache graph: ${err}`,
+                                        10000
+                                    )
+                            );
+                        } else {
+                            new Notice(
+                                `desmos-graph: cache directory not found: '${cache_dir}'`,
+                                10000
+                            );
+                        }
                     }
                 }
             }
