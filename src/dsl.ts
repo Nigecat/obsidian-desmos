@@ -1,5 +1,14 @@
 import { createHash } from "crypto";
 
+export enum Field {
+    Width = "width",
+    Height = "height",
+    BoundryLeft = "boundry_left",
+    BoundryRight = "boundry_right",
+    BoundryBottom = "boundry_bottom",
+    BoundryTop = "boundry_top",
+}
+
 export class Dsl {
     /// A (hex) SHA-256 hash of the fields of this object
     public hash: string;
@@ -38,15 +47,28 @@ export class Dsl {
         const settings =
             split.length == 2
                 ? split[0]
-                      .split(";")
+                      .split(/[;\n]+/) // allow either a newline or semicolon as a delimiter
                       .map((setting) => setting.trim())
                       .filter(Boolean) // remove any empty elements
                       .map((setting) => setting.split("=").map((e) => e.trim()))
                       .reduce((settings, setting) => {
+                          if (setting.length < 2) {
+                              throw new SyntaxError(
+                                  `Field '${setting[0]}' must have a value`
+                              );
+                          }
                           const s = parseInt(setting[1]);
-                          settings[setting[0]] = s === NaN ? undefined : s;
+                          const field: Field = (Field as any)[setting[0]];
+
+                          if (!field) {
+                              throw new SyntaxError(
+                                  `Unrecognised field: ${setting[0]}`
+                              );
+                          }
+
+                          settings[field] = s === NaN ? undefined : s;
                           return settings;
-                      }, {} as Record<string, number>)
+                      }, {} as Partial<Record<Field, number>>)
                 : {};
 
         // Ensure boundaries are complete
