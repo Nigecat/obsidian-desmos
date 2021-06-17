@@ -30,7 +30,7 @@ export class SettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("Debounce Time (ms)")
             .setDesc(
-                "How long to wait after a keypress to display the graph (requires restart to take affect)"
+                "How long to wait after a keypress to render the graph (requires restart to take affect)"
             )
             .addText((text) =>
                 text
