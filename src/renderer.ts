@@ -3,6 +3,7 @@ import { Dsl } from "./dsl";
 import { tmpdir } from "os";
 import { Notice } from "obsidian";
 import { Settings } from "./settings";
+import { renderError } from "./error";
 import { existsSync, promises as fs } from "fs";
 
 export class Renderer {
@@ -68,7 +69,12 @@ export class Renderer {
                 ${expressions.join("")}
 
                 calculator.observe("expressionAnalysis", () => {
-                    // todo implement
+                    for (const id in calculator.expressionAnalysis) {
+                        const analysis = calculator.expressionAnalysis[id];
+                        if (analysis.isError) {
+                            parent.postMessage({ t: "desmos-graph", d: "error", data: analysis.errorMessage });
+                        }
+                    }
                 });
 
                 calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
@@ -99,9 +105,7 @@ export class Renderer {
                 el.empty();
 
                 if (message.data.d === "error") {
-                    const err = message.data.data;
-                    // todo render error
-                    console.error(err);
+                    renderError(message.data.data, el);
                 }
 
                 if (message.data.d === "render") {

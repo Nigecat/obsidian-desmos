@@ -14,18 +14,7 @@ export class Dsl {
         public readonly boundry_top = 7
     ) {
         this.hash = createHash("sha256")
-            .update(
-                equations
-                    .join(",")
-                    .concat(
-                        width.toString(),
-                        height.toString(),
-                        boundry_left.toString(),
-                        boundry_right.toString(),
-                        boundry_bottom.toString(),
-                        boundry_top.toString()
-                    )
-            )
+            .update(JSON.stringify(this))
             .digest("hex");
     }
 
