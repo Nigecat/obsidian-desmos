@@ -1,12 +1,12 @@
 import { createHash } from "crypto";
 
 export enum Field {
-    Width = "width",
-    Height = "height",
-    BoundryLeft = "boundry_left",
-    BoundryRight = "boundry_right",
-    BoundryBottom = "boundry_bottom",
-    BoundryTop = "boundry_top",
+    width = "width",
+    height = "height",
+    boundry_left = "boundry_left",
+    boundry_right = "boundry_right",
+    boundry_bottom = "boundry_bottom",
+    boundry_top = "boundry_top",
 }
 
 export class Dsl {
@@ -78,7 +78,7 @@ export class Dsl {
             (settings.boundry_right != undefined)
         ) {
             throw new SyntaxError(
-                "Incomplete boundaries: If you specify one boundry you must also specify the other (boundry_left, boundry_right"
+                "Incomplete boundaries: If you specify one boundry you must also specify the other (boundry_left, boundry_right)"
             );
         }
         if (
@@ -86,7 +86,7 @@ export class Dsl {
             (settings.boundry_top != undefined)
         ) {
             throw new SyntaxError(
-                "Incomplete boundaries: If you specify one boundry you must also specify the other (boundry_bottom, boundry_top"
+                "Incomplete boundaries: If you specify one boundry you must also specify the other (boundry_bottom, boundry_top)"
             );
         }
 

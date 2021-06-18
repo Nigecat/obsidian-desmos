@@ -1,7 +1,7 @@
 import { Dsl } from "./dsl";
-import { debounce, Plugin } from "obsidian";
 import { Renderer } from "./renderer";
 import { renderError } from "./error";
+import { debounce, Plugin } from "obsidian";
 import { Settings, SettingsTab, DEFAULT_SETTINGS } from "./settings";
 
 export default class Desmos extends Plugin {
