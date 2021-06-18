@@ -87,7 +87,8 @@ export class Dsl {
                             }
 
                             // We can use the defaults to determine the type of each field
-                            const field_t = typeof (FIELD_DEFAULTS as any)[key];
+                            const field_v = (FIELD_DEFAULTS as any)[key];
+                            const field_t = typeof field_v;
 
                             switch (field_t) {
                                 case "number": {
@@ -107,9 +108,11 @@ export class Dsl {
                                 }
 
                                 case "object": {
-                                    const arr = JSON.parse(value);
-                                    if (arr.constructor === Array) {
-                                        (settings as any)[key] = arr;
+                                    const val = JSON.parse(value);
+                                    if (
+                                        val.constructor === field_v.constructor
+                                    ) {
+                                        (settings as any)[key] = val;
                                     }
                                     break;
                                 }
