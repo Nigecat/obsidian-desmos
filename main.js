@@ -241,7 +241,7 @@ class SettingsTab extends obsidian.PluginSettingTab {
         containerEl.empty();
         new obsidian.Setting(containerEl)
             .setName("Debounce Time (ms)")
-            .setDesc("How long to wait after a keypress to render the graph (requires restart to take affect)")
+            .setDesc("How long to wait after a keypress to render the graph (requires restart to take effect)")
             .addText((text) => text
             .setValue(this.plugin.settings.debounce.toString())
             .onChange((value) => __awaiter(this, void 0, void 0, function* () {
