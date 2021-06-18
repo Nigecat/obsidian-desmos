@@ -14,7 +14,7 @@ export class Renderer {
         el: HTMLElement,
         plugin: Desmos
     ) {
-        const { height, width, equations, hash } = args;
+        const { fields, equations, hash } = args;
 
         // Calculate cache info for filesystem caching
         const vault_root = (plugin.app.vault.adapter as any).basePath;
@@ -64,7 +64,9 @@ export class Renderer {
         // otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
         const html_src_head = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const html_src_body = `
-            <div id="calculator" style="width: ${width}px; height: ${height}px;"></div>
+            <div id="calculator" style="width: ${fields.width}px; height: ${
+            fields.height
+        }px;"></div>
             <script>
                 const options = {
                     settingsMenu: false,
@@ -76,12 +78,12 @@ export class Renderer {
 
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator"), options);
                 calculator.setMathBounds({
-                    left: ${args.boundry_left},
-                    right: ${args.boundry_right},
-                    top: ${args.boundry_top},
-                    bottom: ${args.boundry_bottom},
+                    left: ${fields.boundry_left},
+                    right: ${fields.boundry_right},
+                    top: ${fields.boundry_top},
+                    bottom: ${fields.boundry_bottom},
                 });
-                
+
                 ${expressions.join("")}
 
                 calculator.observe("expressionAnalysis", () => {
@@ -95,15 +97,15 @@ export class Renderer {
 
                 calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
                     document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", d: "render", data }, "app://obsidian.md");                    
+                    parent.postMessage({ t: "desmos-graph", d: "render", data }, "app://obsidian.md");
                 });
             </script>
         `;
         const html_src = `<html><head>${html_src_head}</head><body>${html_src_body}</body>`;
 
         const iframe = document.createElement("iframe");
-        iframe.width = width.toString();
-        iframe.height = height.toString();
+        iframe.width = fields.width.toString();
+        iframe.height = fields.height.toString();
         iframe.style.border = "none";
         iframe.scrolling = "no"; // fixme use a non-depreciated function
         iframe.srcdoc = html_src;
