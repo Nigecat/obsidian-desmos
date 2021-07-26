@@ -90,14 +90,14 @@ export class Renderer {
                     for (const id in calculator.expressionAnalysis) {
                         const analysis = calculator.expressionAnalysis[id];
                         if (analysis.isError) {
-                            parent.postMessage({ t: "desmos-graph", d: "error", data: analysis.errorMessage });
+                            parent.postMessage({ t: "desmos-graph", d: "error", data: analysis.errorMessage, hash: "${hash}" });
                         }
                     }
                 });
 
                 calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
                     document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", d: "render", data }, "app://obsidian.md");
+                    parent.postMessage({ t: "desmos-graph", d: "render", data, hash: "${hash}" }, "app://obsidian.md");
                 });
             </script>
         `;
@@ -114,11 +114,17 @@ export class Renderer {
         el.appendChild(iframe);
 
         const handler = (
-            message: MessageEvent<{ t: string; d: string; data: string }>
+            message: MessageEvent<{
+                t: string;
+                d: string;
+                data: string;
+                hash: string;
+            }>
         ) => {
             if (
                 message.origin === "app://obsidian.md" &&
-                message.data.t === "desmos-graph"
+                message.data.t === "desmos-graph" &&
+                message.data.hash === hash
             ) {
                 el.empty();
 
