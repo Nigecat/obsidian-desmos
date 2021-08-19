@@ -45,8 +45,8 @@ You can restrict the bounds of the graph and apply other settings by placing a `
 
 ````
     ```desmos-graph
-    boundry_left=0; boundry_right=100;
-    boundry_top=10; boundry_bottom=-10;
+    boundary_left=0; boundary_right=100;
+    boundary_top=10; boundary_bottom=-10;
     ---
     y=\sin(x)
     ```
