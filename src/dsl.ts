@@ -3,19 +3,19 @@ import { createHash } from "crypto";
 export interface Fields {
     width: number;
     height: number;
-    boundry_left: number;
-    boundry_right: number;
-    boundry_bottom: number;
-    boundry_top: number;
+    boundary_left: number;
+    boundary_right: number;
+    boundary_bottom: number;
+    boundary_top: number;
 }
 
 const FIELD_DEFAULTS: Fields = {
     width: 600,
     height: 400,
-    boundry_left: -10,
-    boundry_right: 10,
-    boundry_bottom: -7,
-    boundry_top: 7,
+    boundary_left: -10,
+    boundary_right: 10,
+    boundary_bottom: -7,
+    boundary_top: 7,
 };
 
 export class Dsl {
@@ -36,15 +36,15 @@ export class Dsl {
     /** Check if the fields are sane, throws a `SyntaxError` if they aren't */
     private static assert_sanity(fields: Fields) {
         // Ensure boundaries are complete and in order
-        if (fields.boundry_left >= fields.boundry_right) {
+        if (fields.boundary_left >= fields.boundary_right) {
             throw new SyntaxError(
-                `Right boundry (${fields.boundry_right}) must be greater than left boundry (${fields.boundry_left})`
+                `Right boundary (${fields.boundary_right}) must be greater than left boundary (${fields.boundary_left})`
             );
         }
 
-        if (fields.boundry_bottom >= fields.boundry_top) {
+        if (fields.boundary_bottom >= fields.boundary_top) {
             throw new SyntaxError(`
-                Top boundry (${fields.boundry_top}) must be greater than bottom boundry (${fields.boundry_bottom})
+                Top boundary (${fields.boundary_top}) must be greater than bottom boundary (${fields.boundary_bottom})
             `);
         }
     }
