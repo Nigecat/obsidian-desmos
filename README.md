@@ -60,7 +60,7 @@ Note that to be able to render these graphs into a PDF the following conditions 
 
 1) Memory caching **must** be enabled
 2) Obsidian **must** have been restarted since you initially created the graph
-3) You **must** have viewed the rendered graph in the preview 
+3) You **must** have viewed the rendered graph in the preview since the restart
 
 After these are complete, a standard PDF export should work fine. 
 In the future these steps will be removed and you will be able to directly export them.
