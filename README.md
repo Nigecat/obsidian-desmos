@@ -53,3 +53,14 @@ You can restrict the bounds of the graph and apply other settings by placing a `
 ````
 
 You can set the dimensions of the rendered image by using the `height` and `width` fields.
+
+## Important
+
+Note that to be able to render these graphs into a PDF the following conditions must be fulfilled
+
+1) Memory caching **must** be enabled
+2) Obsidian **must** have been restarted since you initially created the graph
+3) You **must** have viewed the rendered graph in the preview 
+
+After these are complete, a standard PDF export should work fine. 
+In the future these steps will be removed and you will be able to directly export them.
