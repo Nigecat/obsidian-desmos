@@ -52,11 +52,11 @@ You can set the dimensions of the rendered image by using the `height` and `widt
 
 #### Restrictions
 
-Note that graph restrictions follow the same format as desmos itself:
+Note that graph restrictions follow the same format as desmos itself (except we use a `|` to denote the beginning of the restrictions):
 
 ````
     ```desmos-graph
-        y=\sin(x){y > 0}
+        y=\sin(x)|{y > 0}
     ```
 ````
 

@@ -55,14 +55,14 @@ export class Renderer {
         const expressions = equations.map(
             (equation) =>
                 `calculator.setExpression({ latex: "${equation
-                    .replace("\\", "\\\\")
+                    .split("|")[0]
+                    .replace("\\", "\\\\")}${(equation.split("|")[1] ?? "")
                     .replace("{", "\\\\{")
                     .replace("}", "\\\\}")
                     .replace("<", "\\\\le ")
                     .replace(">", "\\\\ge ")
                     .replace("<=", "\\\\leq ")
-                    .replace(">=", "\\\\geq ")
-                }" });`
+                    .replace(">=", "\\\\geq ")}" });`
         );
 
         // Because of the electron sandboxing we have to do this inside an iframe,
