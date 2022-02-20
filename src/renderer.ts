@@ -54,15 +54,39 @@ export class Renderer {
 
         const expressions = equations.map(
             (equation) =>
-                `calculator.setExpression({ latex: "${equation
-                    .split("|")[0]
-                    .replace("\\", "\\\\")}${(equation.split("|")[1] ?? "")
+                `calculator.setExpression({
+                    latex: "${equation.split("|")[0].replace("\\", "\\\\")}${(
+                    equation.split("|")[1] ?? ""
+                )
                     .replace("{", "\\\\{")
                     .replace("}", "\\\\}")
                     .replace("<=", "\\\\leq ")
                     .replace(">=", "\\\\geq ")
                     .replace("<", "\\\\le ")
-                    .replace(">", "\\\\ge ")}" });`
+                    .replace(">", "\\\\ge ")}",
+                    
+                    ${(() => {
+                        const mode = equation.split("|")[2];
+
+                        if (mode) {
+                            if (
+                                ["solid", "dashed", "dotted"].contains(
+                                    mode.toLowerCase()
+                                )
+                            ) {
+                                return `lineStyle: Desmos.Styles.${mode.toUpperCase()}`;
+                            } else if (
+                                ["point", "open", "cross"].contains(
+                                    mode.toLowerCase()
+                                )
+                            ) {
+                                return `pointStyle: Desmos.Styles.${mode.toUpperCase()}`;
+                            }
+                        }
+
+                        return "";
+                    })()}
+                });`
         );
 
         // Because of the electron sandboxing we have to do this inside an iframe,

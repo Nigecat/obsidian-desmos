@@ -60,13 +60,36 @@ Note that graph restrictions follow the same format as desmos itself (except we 
     ```
 ````
 
+### Style
+
+We support six different types of styles, three for a line and another three for a point.
+Line: `SOLID`, `DASHED`, `DOTTED` (these are case-insensitive)
+Point: `POINT`, `OPEN`, `CROSS` (these are case-insensitive)
+
+These are placed after the graph restrictions, following another `|`:
+
+````
+    ```desmos-graph
+    y=\sin(x)|{y > 0}|DASHED
+    ```
+````
+
+If you do not wish to apply any restrictions, the center field can be left blank:
+
+````
+    ```desmos-graph
+    y=\sin(x)||DASHED
+    (1,2)||OPEN
+    ```
+````
+
 ## Important
 
 Note that to be able to render these graphs into a PDF the following conditions must be fulfilled
 
-1) Memory caching **must** be enabled
-2) Obsidian **must** have been restarted since you initially created the graph
-3) You **must** have viewed the rendered graph in the preview since the restart
+1. Memory caching **must** be enabled
+2. Obsidian **must** have been restarted since you initially created the graph
+3. You **must** have viewed the rendered graph in the preview since the restart
 
-After these are complete, a standard PDF export should work fine. 
+After these are complete, a standard PDF export should work fine.
 In the future these steps will be removed and you will be able to directly export them.
