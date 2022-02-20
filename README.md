@@ -62,9 +62,9 @@ Note that graph restrictions follow the same format as desmos itself (except we 
 
 ### Style
 
-We support six different types of styles, three for a line and another three for a point.
-Line: `SOLID`, `DASHED`, `DOTTED` (these are case-insensitive)
-Point: `POINT`, `OPEN`, `CROSS` (these are case-insensitive)
+We support six different types of (case-insensitive) styles:  
+Line: `SOLID` `DASHED` `DOTTED`  
+Point: `POINT` `OPEN` `CROSS`  
 
 These are placed after the graph restrictions, following another `|`:
 
