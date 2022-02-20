@@ -11,7 +11,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
     debounce: 500,
-    cache: false,
+    cache: true,
     cache_location: "memory",
     cache_directory: null,
 };
