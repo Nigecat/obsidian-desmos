@@ -3,9 +3,9 @@ import Desmos from "./main";
 import { Dsl } from "./dsl";
 import { tmpdir } from "os";
 import { Notice } from "obsidian";
-import { Settings } from "./settings";
 import { renderError } from "./error";
 import { existsSync, promises as fs } from "fs";
+import { CacheLocation, Settings } from "./settings";
 
 export class Renderer {
     static render(
@@ -18,17 +18,17 @@ export class Renderer {
 
         // Calculate cache info for filesystem caching
         const vault_root = (plugin.app.vault.adapter as any).basePath;
-        const cache_dir = settings.cache_directory
-            ? path.isAbsolute(settings.cache_directory)
-                ? settings.cache_directory
-                : path.join(vault_root, settings.cache_directory)
+        const cache_dir = settings.cache.directory
+            ? path.isAbsolute(settings.cache.directory)
+                ? settings.cache.directory
+                : path.join(vault_root, settings.cache.directory)
             : tmpdir();
         const cache_target = path.join(cache_dir, `desmos-graph-${hash}.png`);
 
         // If this graph is in the cache then fetch it
         if (settings.cache) {
             if (
-                settings.cache_location == "memory" &&
+                settings.cache.location == CacheLocation.Memory &&
                 hash in plugin.graph_cache
             ) {
                 const data = plugin.graph_cache[hash];
@@ -37,7 +37,7 @@ export class Renderer {
                 el.appendChild(img);
                 return;
             } else if (
-                settings.cache_location == "filesystem" &&
+                settings.cache.location == CacheLocation.Filesystem &&
                 existsSync(cache_target)
             ) {
                 fs.readFile(cache_target).then((data) => {
@@ -170,9 +170,11 @@ export class Renderer {
                     el.appendChild(img);
 
                     if (settings.cache) {
-                        if (settings.cache_location == "memory") {
+                        if (settings.cache.location == CacheLocation.Memory) {
                             plugin.graph_cache[hash] = data;
-                        } else if (settings.cache_location == "filesystem") {
+                        } else if (
+                            settings.cache.location == CacheLocation.Filesystem
+                        ) {
                             if (existsSync(cache_dir)) {
                                 fs.writeFile(
                                     cache_target,

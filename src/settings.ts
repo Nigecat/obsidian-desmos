@@ -2,19 +2,47 @@ import { tmpdir } from "os";
 import Desmos from "./main";
 import { PluginSettingTab, App, Setting } from "obsidian";
 
-export interface Settings {
-    debounce: number;
-    cache: boolean;
-    cache_location: "memory" | "filesystem";
-    cache_directory: string | null;
+export enum CacheLocation {
+    Memory = "Memory",
+    Filesystem = "Filesystem",
 }
 
-export const DEFAULT_SETTINGS: Settings = {
+export interface Settings {
+    /** The program version these settings were created in */
+    version: string;
+    /** The debounce timer (in ms) */
+    debounce: number;
+    cache: CacheSettings;
+}
+
+export interface CacheSettings {
+    enabled: boolean;
+    location: CacheLocation;
+    directory?: string;
+}
+
+const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
     debounce: 500,
-    cache: true,
-    cache_location: "memory",
-    cache_directory: null,
+    cache: {
+        enabled: true,
+        location: CacheLocation.Memory,
+    },
 };
+
+/** Get the default settings for the given plugin.
+ * This simply uses `DEFAULT_SETTINGS_STATIC` and patches the version from the manifest. */
+export function DEFAULT_SETTINGS(plugin: Desmos): Settings {
+    return {
+        version: plugin.manifest.version,
+        ...DEFAULT_SETTINGS_STATIC,
+    };
+}
+
+/** Attempt to migrate the given settings object to the current structure */
+export function migrateSettings(plugin: Desmos, settings: any): Settings {
+    // todo (there is currently only one version of the settings interface)
+    return settings as Settings;
+}
 
 export class SettingsTab extends PluginSettingTab {
     plugin: Desmos;
@@ -40,7 +68,9 @@ export class SettingsTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         const val = parseInt(value);
                         this.plugin.settings.debounce =
-                            val === NaN ? DEFAULT_SETTINGS.debounce : val;
+                            val === NaN
+                                ? DEFAULT_SETTINGS_STATIC.debounce
+                                : val;
                         await this.plugin.saveSettings();
                     })
             );
@@ -50,9 +80,9 @@ export class SettingsTab extends PluginSettingTab {
             .setDesc("Whether to cache the rendered graphs")
             .addToggle((toggle) =>
                 toggle
-                    .setValue(this.plugin.settings.cache)
+                    .setValue(this.plugin.settings.cache.enabled)
                     .onChange(async (value) => {
-                        this.plugin.settings.cache = value;
+                        this.plugin.settings.cache.enabled = value;
                         await this.plugin.saveSettings();
 
                         // Reset the display so the new state can render
@@ -60,23 +90,20 @@ export class SettingsTab extends PluginSettingTab {
                     })
             );
 
-        if (this.plugin.settings.cache) {
+        if (this.plugin.settings.cache.enabled) {
             new Setting(containerEl)
-                .setName("Cache in memory (alternate: filesystem)")
+                .setName("Cache location")
                 .setDesc(
-                    "Cache rendered graphs in memory or on the filesystem (note that memory caching is not persistent)."
+                    "Set the location to cache rendered graphs (note that memory caching is not persistent)"
                 )
-                .addToggle((toggle) =>
-                    toggle
-                        .setValue(
-                            this.plugin.settings.cache_location === "memory"
-                                ? true
-                                : false
-                        )
+                .addDropdown((dropdown) =>
+                    dropdown
+                        .addOption(CacheLocation.Memory, "Memory")
+                        .addOption(CacheLocation.Filesystem, "Filesystem")
+                        .setValue(this.plugin.settings.cache.location)
                         .onChange(async (value) => {
-                            this.plugin.settings.cache_location = value
-                                ? "memory"
-                                : "filesystem";
+                            this.plugin.settings.cache.location =
+                                value as CacheLocation;
                             await this.plugin.saveSettings();
 
                             // Reset the display so the new state can render
@@ -84,7 +111,9 @@ export class SettingsTab extends PluginSettingTab {
                         })
                 );
 
-            if (this.plugin.settings.cache_location == "filesystem") {
+            if (
+                this.plugin.settings.cache.location == CacheLocation.Filesystem
+            ) {
                 new Setting(containerEl)
                     .setName("Cache Directory")
                     .setDesc(
@@ -93,9 +122,9 @@ export class SettingsTab extends PluginSettingTab {
                     .addText((text) =>
                         text
                             .setPlaceholder(tmpdir())
-                            .setValue(this.plugin.settings.cache_directory)
+                            .setValue(this.plugin.settings.cache.directory)
                             .onChange(async (value) => {
-                                this.plugin.settings.cache_directory = value;
+                                this.plugin.settings.cache.directory = value;
                                 await this.plugin.saveSettings();
                             })
                     );

@@ -2,7 +2,12 @@ import { Dsl } from "./dsl";
 import { Renderer } from "./renderer";
 import { renderError } from "./error";
 import { debounce, Plugin } from "obsidian";
-import { Settings, SettingsTab, DEFAULT_SETTINGS } from "./settings";
+import {
+    DEFAULT_SETTINGS,
+    migrateSettings,
+    Settings,
+    SettingsTab,
+} from "./settings";
 
 export default class Desmos extends Plugin {
     settings: Settings;
@@ -51,11 +56,17 @@ export default class Desmos extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign(
-            {},
-            DEFAULT_SETTINGS,
-            await this.loadData()
-        );
+        let settings = await this.loadData();
+
+        if (!settings) {
+            settings = DEFAULT_SETTINGS(this);
+        }
+
+        if (settings.version != this.manifest.version) {
+            settings = migrateSettings(this, settings);
+        }
+
+        this.settings = settings;
     }
 
     async saveSettings() {
