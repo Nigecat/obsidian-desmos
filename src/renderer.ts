@@ -112,9 +112,9 @@ export class Renderer {
             // otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
             const html_src_head = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
             const html_src_body = `
-            <div id="calculator" style="width: ${fields.width}px; height: ${
-                fields.height
-            }px;"></div>
+            <div id="calculator-${hash}" style="width: ${
+                fields.width
+            }px; height: ${fields.height}px;"></div>
             <script>
                 const options = {
                     settingsMenu: false,
@@ -124,7 +124,7 @@ export class Renderer {
                     trace: false,
                 };
 
-                const calculator = Desmos.GraphingCalculator(document.getElementById("calculator"), options);
+                const calculator = Desmos.GraphingCalculator(document.getElementById("calculator-${hash}"), options);
                 calculator.setMathBounds({
                     left: ${fields.left},
                     right: ${fields.right},
