@@ -23,9 +23,11 @@ export default class Desmos extends Plugin {
         this.addSettingTab(new SettingsTab(this.app, this));
 
         // Skip debounce after a layout change
-        this.app.workspace.on(
-            "layout-change",
-            () => (this.skip_debounce = true)
+        this.registerEvent(
+            this.app.workspace.on(
+                "layout-change",
+                () => (this.skip_debounce = true)
+            )
         );
 
         this.app.workspace.activeLeaf;
