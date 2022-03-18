@@ -1,6 +1,7 @@
 # Obsidian Desmos
 
-Render [Desmos](https://www.desmos.com/calculator) graphs right inside your notes.
+Render [Desmos](https://www.desmos.com/calculator) graphs right inside your notes.  
+Note that this plugin **will not** work offline unless you have enabled filesystem caching (and are viewing graphs you have previously seen).
 
 # Installation
 
