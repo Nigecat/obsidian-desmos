@@ -30,9 +30,17 @@ export default class Desmos extends Plugin {
             total = (contents.match(/```desmos-graph/g) || []).length;
         });
 
-        const render = (source: string, el: HTMLElement) => {
+        const render = async (
+            source: string,
+            el: HTMLElement
+        ): Promise<void> => {
             try {
-                Renderer.render(Dsl.parse(source), this.settings, el, this);
+                return Renderer.render(
+                    Dsl.parse(source),
+                    this.settings,
+                    el,
+                    this
+                );
             } catch (err) {
                 renderError(err.message, el);
             }
@@ -44,12 +52,16 @@ export default class Desmos extends Plugin {
         this.registerMarkdownCodeBlockProcessor(
             "desmos-graph",
             (source, el) => {
-                if (total > 0) {
+                if (
+                    total > 0 ||
+                    !this.settings.debounce ||
+                    this.settings.debounce < 1
+                ) {
                     total--;
-                    // Skip the debounce on initial render
-                    render(source, el);
+                    // Skip the debounce on initial render (or if there is no valid debounce set)
+                    return render(source, el);
                 } else {
-                    debounce_render(source, el);
+                    return debounce_render(source, el);
                 }
             }
         );
