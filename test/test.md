@@ -7,3 +7,7 @@ y=x||DOTTED
 (1,2)||OPEN
 (-1,2)||CROSS
 ```
+
+```desmos-graph
+y=x
+```

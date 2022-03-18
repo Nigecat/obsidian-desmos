@@ -13,22 +13,22 @@ export default class Desmos extends Plugin {
     settings: Settings;
     /** Helper for in-memory graph caching */
     graph_cache: Record<string, string>;
+    /** Whether to skip the debounce event */
+    skip_debounce: boolean;
 
     async onload() {
         this.graph_cache = {};
+        this.skip_debounce = false;
         await this.loadSettings();
         this.addSettingTab(new SettingsTab(this.app, this));
 
-        // Keep track of the total number of graphs in each file
-        // This allows us to skip the debounce on recently opened files to make it feel snappier to use
-        let total = 0;
-        this.app.workspace.on("file-open", async (file) => {
-            const contents = await this.app.vault.cachedRead(file);
+        // Skip debounce after a layout change
+        this.app.workspace.on(
+            "layout-change",
+            () => (this.skip_debounce = true)
+        );
 
-            // Attempt to figure out the number of graphs there are in this file
-            // In this case it is fine if we overestimate because we only need a general idea since this just makes it skip the debounce
-            total = (contents.match(/```desmos-graph/g) || []).length;
-        });
+        this.app.workspace.activeLeaf;
 
         const render = async (
             source: string,
@@ -53,12 +53,11 @@ export default class Desmos extends Plugin {
             "desmos-graph",
             (source, el) => {
                 if (
-                    total > 0 ||
+                    this.skip_debounce ||
                     !this.settings.debounce ||
                     this.settings.debounce < 1
                 ) {
-                    total--;
-                    // Skip the debounce on initial render (or if there is no valid debounce set)
+                    this.skip_debounce = false;
                     return render(source, el);
                 } else {
                     return debounce_render(source, el);

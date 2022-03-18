@@ -60,7 +60,7 @@ export class SettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName("Debounce Time (ms)")
             .setDesc(
-                "How long to wait after a keypress to render the graph (requires restart to take effect)"
+                "How long to wait after a keypress to render the graph (set to 0 to disable, requires restart to take effect)"
             )
             .addText((text) =>
                 text
@@ -68,7 +68,7 @@ export class SettingsTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         const val = parseInt(value);
                         this.plugin.settings.debounce =
-                            val === NaN
+                            Number.isNaN(val) || val < 0
                                 ? DEFAULT_SETTINGS_STATIC.debounce
                                 : val;
                         await this.plugin.saveSettings();
