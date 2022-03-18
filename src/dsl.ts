@@ -46,7 +46,15 @@ export enum EquationColor {
 export type HexColor = string;
 
 export function isHexColor(value: string): value is HexColor {
-    return value.startsWith("#");
+    if (value.startsWith("#")) {
+        value = value.slice(1);
+        // Ensure the rest of the value is a valid alphanumeric string
+        if (/^[0-9a-zA-Z]+$/.test(value)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 export class Dsl {
@@ -77,6 +85,18 @@ export class Dsl {
             throw new SyntaxError(`
                 Top boundary (${fields.top}) must be greater than bottom boundary (${fields.bottom})
             `);
+        }
+    }
+
+    /** Ensure a string does not contain any of the banned characters
+     *  (this is mostly a sanity check to prevent vulnerabilities in later interpolation) */
+    private static assert_notbanned(value: string, ctx: string) {
+        const bannedChars = ['"', "'", "`"];
+
+        for (const c of bannedChars) {
+            if (value.includes(c)) {
+                throw new SyntaxError(`Unexpected character ${c} in ${ctx}`);
+            }
         }
     }
 
@@ -120,7 +140,6 @@ export class Dsl {
                             // We can use the defaults to determine the type of each field
                             const field_v = (FIELD_DEFAULTS as any)[key];
                             const field_t = typeof field_v;
-
                             switch (field_t) {
                                 case "number": {
                                     const s = parseInt(value);
@@ -134,19 +153,25 @@ export class Dsl {
                                 }
 
                                 case "string": {
+                                    this.assert_notbanned(
+                                        value,
+                                        `field value for key: '${key}'`
+                                    );
+
                                     (settings as any)[key] = value;
+
                                     break;
                                 }
 
-                                case "object": {
-                                    const val = JSON.parse(value);
-                                    if (
-                                        val.constructor === field_v.constructor
-                                    ) {
-                                        (settings as any)[key] = val;
-                                    }
-                                    break;
-                                }
+                                // case "object": {
+                                //     const val = JSON.parse(value);
+                                //     if (
+                                //         val.constructor === field_v.constructor
+                                //     ) {
+                                //         (settings as any)[key] = val;
+                                //     }
+                                //     break;
+                                // }
                             }
                         } else {
                             throw new SyntaxError(`Unrecognised field: ${key}`);
@@ -173,6 +198,7 @@ export class Dsl {
 
             // First segment is always the equation
             const equation: Equation = { equation: segments.shift() };
+            this.assert_notbanned(equation.equation, "graph equation");
 
             // The rest of the segments can either be the restriction, style, or color
             //  whilst we recommend putting the restriction first, we accept these in any order.
@@ -216,6 +242,8 @@ export class Dsl {
 
                 // Otherwise, assume it is a graph restriction
                 else {
+                    this.assert_notbanned(segment, "graph configuration");
+
                     if (!equation.restriction) {
                         equation.restriction = "";
                     }
