@@ -59,15 +59,16 @@ export class Renderer {
             const expressions = equations.map(
                 (equation) =>
                     `calculator.setExpression({
-                    latex: "${equation.equation.replace("\\", "\\\\")}${(
-                        equation.restriction ?? ""
-                    )
-                        .replaceAll("{", "\\\\{")
-                        .replaceAll("}", "\\\\}")
-                        .replaceAll("<=", "\\\\leq ")
-                        .replaceAll(">=", "\\\\geq ")
-                        .replaceAll("<", "\\\\le ")
-                        .replaceAll(">", "\\\\ge ")}",
+                    latex: "${equation.equation.replace("\\", "\\\\")}${
+                        // interpolation is safe as we ensured the string did not contain any quotes in the parser
+                        (equation.restriction ?? "")
+                            .replaceAll("{", "\\\\{")
+                            .replaceAll("}", "\\\\}")
+                            .replaceAll("<=", "\\\\leq ")
+                            .replaceAll(">=", "\\\\geq ")
+                            .replaceAll("<", "\\\\le ")
+                            .replaceAll(">", "\\\\ge ")
+                    }",
                     
                     ${(() => {
                         if (equation.style) {
