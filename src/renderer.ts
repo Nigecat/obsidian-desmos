@@ -18,7 +18,7 @@ export class Renderer {
             const { fields, equations, hash } = args;
 
             // Calculate cache info for filesystem caching
-            const vault_root = (plugin.app.vault.adapter as any).basePath;
+            const vault_root = (plugin.app.vault.adapter as any).basePath; // fixme use the vault API instead of the adapter API (`app.vault.getRoot()` returns `/` so not sure how to get the actual root of the vault)
             const cache_dir = settings.cache.directory
                 ? path.isAbsolute(settings.cache.directory)
                     ? settings.cache.directory
