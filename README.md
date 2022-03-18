@@ -4,19 +4,7 @@ Render [Desmos](https://www.desmos.com/calculator) graphs right inside your note
 
 # Installation
 
-## Using Git
-
-If your vault is hosted using git then congratulations, you can use the easy method. Run  
-`git subtree add --prefix .obsidian/plugins/obsidian-desmos https://github.com/Nigecat/obsidian-desmos master --squash`  
-to add the plugin to the vault in the current working directory of your terminal.  
-You can then run  
-`git subtree pull --prefix .obsidian/plugins/obsidian-desmos https://github.com/Nigecat/obsidian-desmos master --squash`  
-to update the plugin to the latest version (from the same working directory).
-
-## Using anything else
-
-Alternatively, if you do not use git or are not comfortable using the terminal, you can manually install the plugin. Download [manifest.json](manifest.json), [versions.json](versions.json), and [main.js](main.js) and place them in `<vault>/.obsidian/plugins/obsidian-desmos` (you may have to create any missing folders).  
-This process must be repeated to update the application.
+TODO Download from latest release.
 
 # Usage
 
@@ -27,6 +15,11 @@ The most basic usage of this plugin involves creating a codeblock with the tag `
     y=x
     ```
 ````
+<details>
+  <summary>View Graph</summary>
+
+  ![linear](https://user-images.githubusercontent.com/48661288/158956700-96525ec7-20bb-4da6-9314-106a6c43eced.png)
+</details>
 
 Equations use the [LaTeX math](https://en.wikibooks.org/wiki/LaTeX/Mathematics) format and you can graph multiple equations by placing each one on a seperate line:
 
@@ -36,6 +29,11 @@ Equations use the [LaTeX math](https://en.wikibooks.org/wiki/LaTeX/Mathematics) 
     y=\frac{1}{x}
     ```
 ````
+<details>
+  <summary>View Graph</summary>
+
+  ![latex](https://user-images.githubusercontent.com/48661288/158957163-2b561a94-08b0-40fa-b725-0e8957bd696c.png)
+</details>
 
 You can restrict the bounds of the graph and apply other settings by placing a `---` seperator before your equations. The content before it must be a set of `key=value` pairs seperated by either **newlines or semicolons** (or both):
 
@@ -47,38 +45,65 @@ You can restrict the bounds of the graph and apply other settings by placing a `
     y=\sin(x)
     ```
 ````
+<details>
+  <summary>View Graph</summary>
+
+  ![restriction](https://user-images.githubusercontent.com/48661288/158957249-eb3f063e-e4c4-4d50-9935-d4fb95fd2336.png)
+</details>
 
 You can set the dimensions of the rendered image by using the `height` and `width` fields.
 
-#### Restrictions
+## Equation Control
 
-Note that graph restrictions follow the same format as desmos itself (except we use a `|` to denote the beginning of the restrictions):
+You can additionally set three other fields for each equation - the style, color, and a restriction.
+Each of these must be placed between a series of `|` characters after the equation (in any order).
 
+The valid colors are (case-insensitive):
+ - `RED`
+ - `BLUE`
+ - `GREEN`
+ - `PURPLE`
+ - `ORANGE`
+ - `BLACK`
+ - Any hex color code beginning with `#` (e.g `#42ddf5`)
+
+The valid styles are (case-insensitive):
+ - Line (e.g `y=x`)
+    - `SOLID` (default)
+    - `DASHED`
+    - `DOTTED`
+ - Point (e.g `(1,4)`)
+    - `POINT` (default)
+    - `OPEN`
+    - `CROSS`
+
+For example, if we wanted to create a straight green dashed line of `x=2` with a restriction of `y>0` we could do any of the following.
 ````
     ```desmos-graph
-    y=\sin(x)|{y > 0}
+    x=2|y>0|green|dashed
     ```
 ````
-
-### Style
-
-We support six different types of (case-insensitive) styles:  
-Line: `SOLID` `DASHED` `DOTTED`  
-Point: `POINT` `OPEN` `CROSS`  
-
-These are placed after the graph restrictions, following another `|`:
-
 ````
     ```desmos-graph
-    y=\sin(x)|{y > 0}|DASHED
+    x=2|y>0|dashed|green
     ```
 ````
-
-If you do not wish to apply any restrictions, the center field can be left blank:
-
 ````
     ```desmos-graph
-    y=\sin(x)||DASHED
-    (1,2)||OPEN
+    x=2|green|y>0|dashed
     ```
 ````
+````
+    ```desmos-graph
+    x=2|dashed|green|y>0
+    ```
+````
+(you get the idea)  
+<details>
+  <summary>View Graph</summary>
+
+  ![equation-control](https://user-images.githubusercontent.com/48661288/158956490-9d4eaf54-4ae6-4b1c-9f49-18e3eb456650.png)  
+</details>
+
+For the sake of readability, we recommend using the following order (where applicable): `equation|restriction|style|color`
+

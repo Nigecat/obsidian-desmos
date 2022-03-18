@@ -1,11 +1,11 @@
 import path from "path";
 import Desmos from "./main";
-import { Dsl } from "./dsl";
 import { tmpdir } from "os";
 import { Notice } from "obsidian";
 import { renderError } from "./error";
 import { existsSync, promises as fs } from "fs";
 import { CacheLocation, Settings } from "./settings";
+import { Dsl, EquationStyle, isHexColor } from "./dsl";
 
 export class Renderer {
     static render(
@@ -59,32 +59,46 @@ export class Renderer {
             const expressions = equations.map(
                 (equation) =>
                     `calculator.setExpression({
-                    latex: "${equation.split("|")[0].replace("\\", "\\\\")}${(
-                        equation.split("|")[1] ?? ""
+                    latex: "${equation.equation.replace("\\", "\\\\")}${(
+                        equation.restriction ?? ""
                     )
-                        .replace("{", "\\\\{")
-                        .replace("}", "\\\\}")
-                        .replace("<=", "\\\\leq ")
-                        .replace(">=", "\\\\geq ")
-                        .replace("<", "\\\\le ")
-                        .replace(">", "\\\\ge ")}",
+                        .replaceAll("{", "\\\\{")
+                        .replaceAll("}", "\\\\}")
+                        .replaceAll("<=", "\\\\leq ")
+                        .replaceAll(">=", "\\\\geq ")
+                        .replaceAll("<", "\\\\le ")
+                        .replaceAll(">", "\\\\ge ")}",
                     
                     ${(() => {
-                        const mode = equation.split("|")[2];
-
-                        if (mode) {
+                        if (equation.style) {
                             if (
-                                ["solid", "dashed", "dotted"].contains(
-                                    mode.toLowerCase()
-                                )
+                                [
+                                    EquationStyle.Solid,
+                                    EquationStyle.Dashed,
+                                    EquationStyle.Dotted,
+                                ].contains(equation.style)
                             ) {
-                                return `lineStyle: Desmos.Styles.${mode.toUpperCase()}`;
+                                return `lineStyle: Desmos.Styles.${equation.style},`;
                             } else if (
-                                ["point", "open", "cross"].contains(
-                                    mode.toLowerCase()
-                                )
+                                [
+                                    EquationStyle.Point,
+                                    EquationStyle.Open,
+                                    EquationStyle.Cross,
+                                ].contains(equation.style)
                             ) {
-                                return `pointStyle: Desmos.Styles.${mode.toUpperCase()}`;
+                                return `pointStyle: Desmos.Styles.${equation.style},`;
+                            }
+                        }
+
+                        return "";
+                    })()}
+
+                    ${(() => {
+                        if (equation.color) {
+                            if (isHexColor(equation.color)) {
+                                return `color: "${equation.color}",`;
+                            } else {
+                                return `color: Desmos.Colors.${equation.color},`;
                             }
                         }
 

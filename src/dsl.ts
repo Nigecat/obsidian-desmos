@@ -18,13 +18,44 @@ const FIELD_DEFAULTS: Fields = {
     top: 7,
 };
 
+export interface Equation {
+    equation: string;
+    restriction?: string;
+    style?: EquationStyle;
+    color?: EquationColor | HexColor;
+}
+
+export enum EquationStyle {
+    Solid = "SOLID",
+    Dashed = "DASHED",
+    Dotted = "DOTTED",
+    Point = "POINT",
+    Open = "OPEN",
+    Cross = "CROSS",
+}
+
+export enum EquationColor {
+    Red = "RED",
+    Blue = "BLUE",
+    Green = "GREEN",
+    Purple = "PURPLE",
+    Orange = "ORANGE",
+    Black = "BLACK",
+}
+
+export type HexColor = string;
+
+export function isHexColor(value: string): value is HexColor {
+    return value.startsWith("#");
+}
+
 export class Dsl {
     /** A (hex) SHA-256 hash of the fields of this object  */
     public readonly hash: string;
-    public readonly equations: string[];
+    public readonly equations: Equation[];
     public readonly fields: Fields;
 
-    private constructor(equations: string[], fields: Partial<Fields>) {
+    private constructor(equations: Equation[], fields: Partial<Fields>) {
         this.equations = equations;
         this.fields = { ...FIELD_DEFAULTS, ...fields };
         Dsl.assert_sanity(this.fields);
@@ -136,6 +167,68 @@ export class Dsl {
             throw new SyntaxError("Too many segments");
         }
 
-        return new Dsl(equations, fields);
+        // Process equations
+        const processed = equations.map((eq) => {
+            const segments = eq.split("|");
+
+            // First segment is always the equation
+            const equation: Equation = { equation: segments.shift() };
+
+            // The rest of the segments can either be the restriction, style, or color
+            //  whilst we recommend putting the restriction first, we accept these in any order.
+            for (const segment of segments) {
+                const segmentUpperCase = segment.toUpperCase();
+
+                // If this is a valid style constant
+                if (
+                    Object.values(EquationStyle).includes(
+                        segmentUpperCase as EquationStyle
+                    )
+                ) {
+                    if (!equation.style) {
+                        equation.style = segmentUpperCase as EquationStyle;
+                    } else {
+                        throw new SyntaxError(
+                            `Duplicate style identifiers detected: ${equation.style}, ${segmentUpperCase}`
+                        );
+                    }
+                }
+
+                // If this is a valid color constant or hex code
+                else if (
+                    Object.values(EquationColor).includes(
+                        segmentUpperCase as EquationColor
+                    ) ||
+                    isHexColor(segment)
+                ) {
+                    if (!equation.color) {
+                        if (isHexColor(segment)) {
+                            equation.color = segment;
+                        } else {
+                            equation.color = segmentUpperCase as EquationColor;
+                        }
+                    } else {
+                        throw new SyntaxError(
+                            `Duplicate color identifiers detected: ${equation.color}, ${segmentUpperCase}`
+                        );
+                    }
+                }
+
+                // Otherwise, assume it is a graph restriction
+                else {
+                    if (!equation.restriction) {
+                        equation.restriction = "";
+                    }
+
+                    // Desmos allows multiple graph restrictions, so we can just concatenate
+                    equation.restriction += `{${segment}}`;
+                }
+            }
+
+            return equation;
+        });
+
+        // console.log(processed, fields);
+        return new Dsl(processed, fields);
     }
 }
