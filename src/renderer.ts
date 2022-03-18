@@ -111,10 +111,10 @@ export class Renderer {
 
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator"), options);
                 calculator.setMathBounds({
-                    left: ${fields.boundary_left},
-                    right: ${fields.boundary_right},
-                    top: ${fields.boundary_top},
-                    bottom: ${fields.boundary_bottom},
+                    left: ${fields.left},
+                    right: ${fields.right},
+                    top: ${fields.top},
+                    bottom: ${fields.bottom},
                 });
 
                 ${expressions.join("")}

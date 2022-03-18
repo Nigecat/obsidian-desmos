@@ -41,8 +41,8 @@ You can restrict the bounds of the graph and apply other settings by placing a `
 
 ````
     ```desmos-graph
-    boundary_left=0; boundary_right=100;
-    boundary_top=10; boundary_bottom=-10;
+    left=0; right=100;
+    top=10; bottom=-10;
     ---
     y=\sin(x)
     ```
@@ -56,7 +56,7 @@ Note that graph restrictions follow the same format as desmos itself (except we 
 
 ````
     ```desmos-graph
-        y=\sin(x)|{y > 0}
+    y=\sin(x)|{y > 0}
     ```
 ````
 
@@ -82,14 +82,3 @@ If you do not wish to apply any restrictions, the center field can be left blank
     (1,2)||OPEN
     ```
 ````
-
-## Important
-
-Note that to be able to render these graphs into a PDF the following conditions must be fulfilled
-
-1. Memory caching **must** be enabled
-2. Obsidian **must** have been restarted since you initially created the graph
-3. You **must** have viewed the rendered graph in the preview since the restart
-
-After these are complete, a standard PDF export should work fine.
-In the future these steps will be removed and you will be able to directly export them.

@@ -3,19 +3,19 @@ import { createHash } from "crypto";
 export interface Fields {
     width: number;
     height: number;
-    boundary_left: number;
-    boundary_right: number;
-    boundary_bottom: number;
-    boundary_top: number;
+    left: number;
+    right: number;
+    bottom: number;
+    top: number;
 }
 
 const FIELD_DEFAULTS: Fields = {
     width: 600,
     height: 400,
-    boundary_left: -10,
-    boundary_right: 10,
-    boundary_bottom: -7,
-    boundary_top: 7,
+    left: -10,
+    right: 10,
+    bottom: -7,
+    top: 7,
 };
 
 export class Dsl {
@@ -36,15 +36,15 @@ export class Dsl {
     /** Check if the fields are sane, throws a `SyntaxError` if they aren't */
     private static assert_sanity(fields: Fields) {
         // Ensure boundaries are complete and in order
-        if (fields.boundary_left >= fields.boundary_right) {
+        if (fields.left >= fields.right) {
             throw new SyntaxError(
-                `Right boundary (${fields.boundary_right}) must be greater than left boundary (${fields.boundary_left})`
+                `Right boundary (${fields.right}) must be greater than left boundary (${fields.left})`
             );
         }
 
-        if (fields.boundary_bottom >= fields.boundary_top) {
+        if (fields.bottom >= fields.top) {
             throw new SyntaxError(`
-                Top boundary (${fields.boundary_top}) must be greater than bottom boundary (${fields.boundary_bottom})
+                Top boundary (${fields.top}) must be greater than bottom boundary (${fields.bottom})
             `);
         }
     }
