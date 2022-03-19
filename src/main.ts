@@ -29,10 +29,25 @@ export default class Desmos extends Plugin {
 
         // Wait until the settings are loaded before registering the codeblock
         this.loadSettings().then(() => {
+            const renderGraph = async (
+                source: string,
+                el: HTMLElement
+            ): Promise<void> => {
+                try {
+                    return Renderer.render(
+                        Dsl.parse(source),
+                        this.settings,
+                        el,
+                        this
+                    );
+                } catch (err) {
+                    renderError(err.message, el);
+                }
+            };
+
             const renderGraphDebounced = debounce(
-                this.renderGraph.bind(this),
-                this.settings.debounce,
-                true
+                (source: string, el: HTMLElement) => renderGraph(source, el),
+                this.settings.debounce
             );
 
             this.registerMarkdownCodeBlockProcessor(
@@ -44,21 +59,13 @@ export default class Desmos extends Plugin {
                         this.settings.debounce < 1
                     ) {
                         this.skip_debounce = false;
-                        return renderGraphDebounced(source, el);
+                        return renderGraph(source, el);
                     } else {
-                        return this.renderGraph(source, el);
+                        return renderGraphDebounced(source, el);
                     }
                 }
             );
         });
-    }
-
-    async renderGraph(source: string, el: HTMLElement): Promise<void> {
-        try {
-            return Renderer.render(Dsl.parse(source), this.settings, el, this);
-        } catch (err) {
-            renderError(err.message, el);
-        }
     }
 
     async loadSettings() {
