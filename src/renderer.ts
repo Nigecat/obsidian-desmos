@@ -138,7 +138,7 @@ export class Renderer {
                     for (const id in calculator.expressionAnalysis) {
                         const analysis = calculator.expressionAnalysis[id];
                         if (analysis.isError) {
-                            parent.postMessage({ t: "desmos-graph", d: "error", data: analysis.errorMessage, hash: "${hash}" });
+                            parent.postMessage({ t: "desmos-graph", d: "error", o: "app://obsidian.md", data: analysis.errorMessage, hash: "${hash}" }, "app://obsidian.md");
                         }
                     }
                 });

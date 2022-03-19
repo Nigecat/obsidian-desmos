@@ -12,14 +12,11 @@ import {
 export default class Desmos extends Plugin {
     settings: Settings;
     /** Helper for in-memory graph caching */
-    graph_cache: Record<string, string>;
+    graph_cache: Record<string, string> = {};
     /** Whether to skip the debounce event */
-    skip_debounce: boolean;
+    skip_debounce: boolean = false;
 
     async onload() {
-        this.graph_cache = {};
-        this.skip_debounce = false;
-        await this.loadSettings();
         this.addSettingTab(new SettingsTab(this.app, this));
 
         // Skip debounce after a layout change
@@ -30,42 +27,38 @@ export default class Desmos extends Plugin {
             )
         );
 
-        this.app.workspace.activeLeaf;
+        // Wait until the settings are loaded before registering the codeblock
+        this.loadSettings().then(() => {
+            const renderGraphDebounced = debounce(
+                this.renderGraph.bind(this),
+                this.settings.debounce,
+                true
+            );
 
-        const render = async (
-            source: string,
-            el: HTMLElement
-        ): Promise<void> => {
-            try {
-                return Renderer.render(
-                    Dsl.parse(source),
-                    this.settings,
-                    el,
-                    this
-                );
-            } catch (err) {
-                renderError(err.message, el);
-            }
-        };
-        const debounce_render = debounce(
-            (source: string, el: HTMLElement) => render(source, el),
-            this.settings.debounce
-        );
-        this.registerMarkdownCodeBlockProcessor(
-            "desmos-graph",
-            (source, el) => {
-                if (
-                    this.skip_debounce ||
-                    !this.settings.debounce ||
-                    this.settings.debounce < 1
-                ) {
-                    this.skip_debounce = false;
-                    return render(source, el);
-                } else {
-                    return debounce_render(source, el);
+            this.registerMarkdownCodeBlockProcessor(
+                "desmos-graph",
+                (source, el) => {
+                    if (
+                        this.skip_debounce ||
+                        !this.settings.debounce ||
+                        this.settings.debounce < 1
+                    ) {
+                        this.skip_debounce = false;
+                        return renderGraphDebounced(source, el);
+                    } else {
+                        return this.renderGraph(source, el);
+                    }
                 }
-            }
-        );
+            );
+        });
+    }
+
+    async renderGraph(source: string, el: HTMLElement): Promise<void> {
+        try {
+            return Renderer.render(Dsl.parse(source), this.settings, el, this);
+        } catch (err) {
+            renderError(err.message, el);
+        }
     }
 
     async loadSettings() {
