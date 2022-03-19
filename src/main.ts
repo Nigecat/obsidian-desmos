@@ -3,6 +3,7 @@ import { Renderer } from "./renderer";
 import { renderError } from "./error";
 import { debounce, Plugin } from "obsidian";
 import {
+    CacheLocation,
     DEFAULT_SETTINGS,
     migrateSettings,
     Settings,
@@ -30,38 +31,49 @@ export default class Desmos extends Plugin {
         // Wait until the settings are loaded before registering the codeblock
         this.loadSettings().then(() => {
             const renderGraph = async (
-                source: string,
+                args: Dsl,
                 el: HTMLElement
             ): Promise<void> => {
                 try {
-                    return Renderer.render(
-                        Dsl.parse(source),
-                        this.settings,
-                        el,
-                        this
-                    );
+                    await Renderer.render(args, this.settings, el, this);
                 } catch (err) {
                     renderError(err.message, el);
                 }
             };
 
             const renderGraphDebounced = debounce(
-                (source: string, el: HTMLElement) => renderGraph(source, el),
+                (args: Dsl, el: HTMLElement) => renderGraph(args, el),
                 this.settings.debounce
             );
 
             this.registerMarkdownCodeBlockProcessor(
                 "desmos-graph",
-                (source, el) => {
+                async (source, el) => {
+                    let args;
+
+                    try {
+                        args = Dsl.parse(source);
+                    } catch (err) {
+                        renderError(err.message, el);
+                        return;
+                    }
+
+                    // Skip debounce if graph in cache
                     if (
+                        this.settings.cache.enabled &&
+                        this.settings.cache.location == CacheLocation.Memory &&
+                        args.hash in this.graph_cache
+                    ) {
+                        await renderGraph(args, el);
+                    } else if (
                         this.skip_debounce ||
                         !this.settings.debounce ||
                         this.settings.debounce < 1
                     ) {
                         this.skip_debounce = false;
-                        return renderGraph(source, el);
+                        await renderGraph(args, el);
                     } else {
-                        return renderGraphDebounced(source, el);
+                        renderGraphDebounced(args, el);
                     }
                 }
             );

@@ -30,7 +30,7 @@ export class Renderer {
             );
 
             // If this graph is in the cache then fetch it
-            if (settings.cache) {
+            if (settings.cache.enabled) {
                 if (
                     settings.cache.location == CacheLocation.Memory &&
                     hash in plugin.graph_cache
@@ -39,6 +39,7 @@ export class Renderer {
                     const img = document.createElement("img");
                     img.src = data;
                     el.appendChild(img);
+                    resolve();
                     return;
                 } else if (
                     settings.cache.location == CacheLocation.Filesystem &&
@@ -52,6 +53,7 @@ export class Renderer {
                         img.src = b64;
                         el.appendChild(img);
                     });
+                    resolve();
                     return;
                 }
             }
@@ -192,7 +194,7 @@ export class Renderer {
                         el.appendChild(img);
                         resolve(); // let caller know we are done rendering
 
-                        if (settings.cache) {
+                        if (settings.cache.enabled) {
                             if (
                                 settings.cache.location == CacheLocation.Memory
                             ) {
