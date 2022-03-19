@@ -108,7 +108,7 @@ export class Renderer {
                 });`
             );
 
-            // Because of the electron sandboxing we have to do this inside an iframe,
+            // Because of the electron sandboxing we have to do this inside an iframe (and regardless this is safer),
             // otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
             const html_src_head = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
             const html_src_body = `
@@ -145,13 +145,14 @@ export class Renderer {
 
                 calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
                     document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", d: "render", data, hash: "${hash}" }, "app://obsidian.md");
+                    parent.postMessage({ t: "desmos-graph", d: "render", o: "app://obsidian.md", data, hash: "${hash}" }, "app://obsidian.md");
                 });
             </script>
         `;
             const html_src = `<html><head>${html_src_head}</head><body>${html_src_body}</body>`;
 
             const iframe = document.createElement("iframe");
+            iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
             iframe.width = fields.width.toString();
             iframe.height = fields.height.toString();
             iframe.style.border = "none";
@@ -165,12 +166,13 @@ export class Renderer {
                 message: MessageEvent<{
                     t: string;
                     d: string;
+                    o: string;
                     data: string;
                     hash: string;
                 }>
             ) => {
                 if (
-                    message.origin === "app://obsidian.md" &&
+                    message.data.o === "app://obsidian.md" &&
                     message.data.t === "desmos-graph" &&
                     message.data.hash === hash
                 ) {
