@@ -180,6 +180,7 @@ export class Renderer {
 
                     if (message.data.d === "error") {
                         renderError(message.data.data, el);
+                        resolve(); // let caller know we are done rendering
                     }
 
                     if (message.data.d === "render") {
