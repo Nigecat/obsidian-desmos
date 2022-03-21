@@ -1,5 +1,8 @@
 import { createHash } from "crypto";
 
+/// The maximum dimensions of a graph
+const MAX_SIZE = 99999;
+
 export interface Fields {
     width: number;
     height: number;
@@ -241,7 +244,11 @@ export class Dsl {
             return equation;
         });
 
-        // console.log(processed, fields);
+        // Limit the height and width to something reasonable
+        if (Math.max(fields.width ?? 0, fields.height ?? 0) > MAX_SIZE) {
+            throw new SyntaxError(`Graph size outside of accepted bounds (${MAX_SIZE}x${MAX_SIZE})`);
+        }
+
         return new Dsl(processed, fields);
     }
 }
