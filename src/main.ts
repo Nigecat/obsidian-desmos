@@ -10,7 +10,7 @@ export default class Desmos extends Plugin {
     /** Helper for in-memory graph caching */
     graph_cache: Record<string, string> = {};
 
-    async onload() {
+    onload() {
         // Wait until the settings are loaded before registering anything which relies on it
         this.loadSettings().then(() => {
             this.addSettingTab(new SettingsTab(this.app, this));

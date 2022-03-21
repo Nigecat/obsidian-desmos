@@ -3,9 +3,9 @@ import Desmos from "./main";
 import { tmpdir } from "os";
 import { Notice } from "obsidian";
 import { renderError } from "./error";
+import { Dsl, EquationStyle } from "./dsl";
 import { existsSync, promises as fs } from "fs";
 import { CacheLocation, Settings } from "./settings";
-import { Dsl, EquationStyle, isHexColor } from "./dsl";
 
 export class Renderer {
     static render(args: Dsl, settings: Settings, el: HTMLElement, plugin: Desmos): Promise<void> {
@@ -83,7 +83,9 @@ export class Renderer {
             );
 
             // Because of the electron sandboxing we have to do this inside an iframe (and regardless this is safer),
-            // otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
+            //   otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
+            // Interestingly enough, this script functions perfectly fine fully offline - so we could include a vendored copy if need be
+            //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
             const html_src_head = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
             const html_src_body = `
             <div id="calculator-${hash}" style="width: ${fields.width}px; height: ${fields.height}px;"></div>

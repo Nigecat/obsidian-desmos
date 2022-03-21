@@ -159,13 +159,19 @@ export class Dsl {
                                     break;
                                 }
 
-                                case "string": {
-                                    this.assert_notbanned(value, `field value for key: '${key}'`);
-
-                                    (settings as any)[key] = value;
-
-                                    break;
+                                default: {
+                                    throw new SyntaxError(
+                                        `Got unrecognized field type ${field_t} with value ${field_v}, this is a bug.`
+                                    );
                                 }
+
+                                // case "string": {
+                                //     this.assert_notbanned(value, `field value for key: '${key}'`);
+
+                                //     (settings as any)[key] = value;
+
+                                //     break;
+                                // }
 
                                 // case "object": {
                                 //     const val = JSON.parse(value);
