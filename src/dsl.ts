@@ -38,12 +38,18 @@ export enum EquationStyle {
 }
 
 export enum EquationColor {
-    Red = "RED",
-    Blue = "BLUE",
-    Green = "GREEN",
-    Purple = "PURPLE",
-    Orange = "ORANGE",
-    Black = "BLACK",
+    RED = "#ff0000",
+    GREEN = "#00ff00",
+    BLUE = "#0000ff",
+
+    YELLOW = "#ffff00",
+    MAGENTA = "#ff00ff",
+    CYAN = "#00ffff",
+
+    PURPLE = "#cc8899",
+    ORANGE = "#ffa500",
+    BLACK = "#000000",
+    WHITE = "#ffffff",
 }
 
 export type HexColor = string;
@@ -215,15 +221,13 @@ export class Dsl {
                 }
 
                 // If this is a valid color constant or hex code
-                else if (
-                    Object.values(EquationColor).includes(segmentUpperCase as EquationColor) ||
-                    isHexColor(segment)
-                ) {
+                else if (Object.keys(EquationColor).includes(segmentUpperCase) || isHexColor(segment)) {
                     if (!equation.color) {
                         if (isHexColor(segment)) {
                             equation.color = segment;
                         } else {
-                            equation.color = segmentUpperCase as EquationColor;
+                            equation.color =
+                                Object.values(EquationColor)[Object.keys(EquationColor).indexOf(segmentUpperCase)];
                         }
                     } else {
                         throw new SyntaxError(

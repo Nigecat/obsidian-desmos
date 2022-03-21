@@ -61,11 +61,15 @@ Each of these must be placed between a series of `|` characters after the equati
 
 The valid colors are (case-insensitive):
  - `RED`
- - `BLUE`
  - `GREEN`
+ - `BLUE`
+ - `YELLOW`
+ - `MAGENTA`
+ - `CYAN`
  - `PURPLE`
  - `ORANGE`
  - `BLACK`
+ - `WHITE`
  - Any hex color code beginning with `#` (e.g `#42ddf5`)
 
 The valid styles are (case-insensitive):

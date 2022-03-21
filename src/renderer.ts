@@ -74,17 +74,11 @@ export class Renderer {
                         return "";
                     })()}
 
-                    ${(() => {
-                        if (equation.color) {
-                            if (isHexColor(equation.color)) {
-                                return `color: "${equation.color}",`; // interpolation is safe as we ensured the string was alphanumeric in the parser
-                            } else {
-                                return `color: Desmos.Colors.${equation.color},`;
-                            }
-                        }
-
-                        return "";
-                    })()}
+                    ${
+                        equation.color
+                            ? `color: "${equation.color}",` // interpolation is safe as we ensured the string was alphanumeric in the parser
+                            : ""
+                    }
                 });`
             );
 
