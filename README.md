@@ -116,3 +116,7 @@ For example, if we wanted to create a straight green dashed line of `x=2` with a
 
 For the sake of readability, we recommend using the following order (where applicable): `equation|restriction|style|color`
 
+## Offline Usage
+
+Since this plugin makes a network request to the Desmos API to render a graph, it cannot render graphs offline.  
+If you intend to view your notes offline it is recommended to enable filesystem caching, as this will allow you to view pre-existing graphs between restarts of Obsidian.
