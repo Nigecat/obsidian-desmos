@@ -1,5 +1,3 @@
-import { createHash } from "crypto";
-
 /// The maximum dimensions of a graph
 const MAX_SIZE = 99999;
 
@@ -67,8 +65,7 @@ export function isHexColor(value: string): value is HexColor {
 }
 
 export class Dsl {
-    /** A (hex) SHA-256 hash of the fields of this object  */
-    public readonly hash: string;
+    private _hash?: string;
     public readonly equations: Equation[];
     public readonly fields: Fields;
     /**  Supplementary error information if the source if valid but Desmos returns an error */
@@ -79,7 +76,19 @@ export class Dsl {
         this.fields = { ...FIELD_DEFAULTS, ...fields };
         this.potential_error_cause = potential_error_cause;
         Dsl.assert_sanity(this.fields);
-        this.hash = createHash("sha256").update(JSON.stringify(this)).digest("hex");
+    }
+
+    /** Get a (hex) SHA-256 hash of this object */
+    public async hash(): Promise<string> {
+        if (this._hash) {
+            return this._hash;
+        }
+
+        const data = new TextEncoder().encode(JSON.stringify(this));
+        const buffer = await crypto.subtle.digest("SHA-256", data);
+        const raw = Array.from(new Uint8Array(buffer));
+        this._hash = raw.map((b) => b.toString(16).padStart(2, "0")).join(""); // convert binary hash to hex
+        return this._hash;
     }
 
     /** Check if the fields are sane, throws a `SyntaxError` if they aren't */
@@ -140,7 +149,8 @@ export class Dsl {
                         const [key, ...value] = setting.split("=");
                         return [key, value.join("=")];
                     })
-                    .reduce((settings, [key, value]) => {
+                    .reduce((settings, [k, value]) => {
+                        const key = k.toLowerCase();
                         if (FIELD_DEFAULTS.hasOwnProperty(key)) {
                             if (!value) {
                                 throw new SyntaxError(`Field '${key}' must have a value`);

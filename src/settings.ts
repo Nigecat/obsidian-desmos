@@ -1,4 +1,3 @@
-import { tmpdir } from "os";
 import Desmos from "./main";
 import { PluginSettingTab, App, Setting } from "obsidian";
 
@@ -106,17 +105,14 @@ export class SettingsTab extends PluginSettingTab {
                 new Setting(containerEl)
                     .setName("Cache Directory")
                     .setDesc(
-                        "The directory to save cached graphs in (technical note: the graphs will be saved as `desmos-graph-<hash>.png` where the name is a SHA-256 hash of the graph source). The default directory is the system tempdir for your current operating system, and this value may be either a path relative to the root of your vault or an absolute path. Also note that a lot of junk will be saved to this folder, you have been warned."
+                        `The directory to save cached graphs in, relative to the vault root (technical note: the graphs will be saved as \`desmos-graph-<hash>.png\` where the name is a SHA-256 hash of the graph source). Also note that a lot of junk will be saved to this folder, you have been warned.`
                     )
-                    .addText((text) =>
-                        text
-                            .setPlaceholder(tmpdir())
-                            .setValue(this.plugin.settings.cache.directory ?? "")
-                            .onChange(async (value) => {
-                                this.plugin.settings.cache.directory = value;
-                                await this.plugin.saveSettings();
-                            })
-                    );
+                    .addText((text) => {
+                        text.setValue(this.plugin.settings.cache.directory ?? "").onChange(async (value) => {
+                            this.plugin.settings.cache.directory = value;
+                            await this.plugin.saveSettings();
+                        });
+                    });
             }
         }
     }
