@@ -72,9 +72,9 @@ export class Dsl {
     public readonly equations: Equation[];
     public readonly fields: Fields;
     /**  Supplementary error information if the source if valid but Desmos returns an error */
-    public readonly potential_error_cause?: string;
+    public readonly potential_error_cause?: HTMLSpanElement;
 
-    private constructor(equations: Equation[], fields: Partial<Fields>, potential_error_cause?: string) {
+    private constructor(equations: Equation[], fields: Partial<Fields>, potential_error_cause?: HTMLSpanElement) {
         this.equations = equations;
         this.fields = { ...FIELD_DEFAULTS, ...fields };
         this.potential_error_cause = potential_error_cause;
@@ -113,7 +113,7 @@ export class Dsl {
     public static parse(source: string): Dsl {
         const split = source.split("---");
 
-        let potential_error_cause: string | undefined;
+        let potential_error_cause: HTMLSpanElement | undefined;
         let equations: string[] | undefined;
         let fields: Partial<Fields> = {};
         switch (split.length) {
@@ -243,7 +243,21 @@ export class Dsl {
                     if ((segment as string).includes("\\")) {
                         // If the restriction included a `\` (the LaTeX control character) then the user may have tried to use the LaTeX syntax in the graph restriction (e.g `\frac{1}{2}`)
                         //  Desmos does not allow this but returns a fairly archaic error - "A piecewise expression must have at least one condition."
-                        potential_error_cause = `You may have tried to use the LaTeX syntax in the graph restriction (<code>${segment}</code>), please use some sort of an alternative (e.g <code>\\frac{1}{2}</code> => <code>1/2</code>) as this is not allowed by Desmos.`;
+                        potential_error_cause = document.createElement("span");
+
+                        let pre = document.createElement("span");
+                        pre.innerHTML = "You may have tried to use the LaTeX syntax in the graph restriction (";
+
+                        let inner = document.createElement("code");
+                        inner.innerText = segment;
+
+                        let post = document.createElement("span");
+                        post.innerHTML =
+                            "), please use some sort of an alternative (e.g <code>\\frac{1}{2}</code> => <code>1/2</code>) as this is not supported by Desmos.";
+
+                        potential_error_cause.appendChild(pre);
+                        potential_error_cause.appendChild(inner);
+                        potential_error_cause.appendChild(post);
                     }
 
                     if (!equation.restriction) {

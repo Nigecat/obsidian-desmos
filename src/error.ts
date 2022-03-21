@@ -1,4 +1,4 @@
-export function renderError(err: string, el: HTMLElement, extra?: string) {
+export function renderError(err: string, el: HTMLElement, extra?: HTMLSpanElement) {
     const wrapper = document.createElement("div");
 
     const message = document.createElement("strong");
@@ -13,10 +13,7 @@ export function renderError(err: string, el: HTMLElement, extra?: string) {
         const message_extra = document.createElement("strong");
         message_extra.innerHTML = "<br>Note: ";
         wrapper.appendChild(message_extra);
-
-        const ctx_extra = document.createElement("span");
-        ctx_extra.innerHTML = extra; // the `extra` argument is only supplied by a static string internally, so this is safe
-        wrapper.appendChild(ctx_extra);
+        wrapper.appendChild(extra);
     }
 
     const container = document.createElement("div");
