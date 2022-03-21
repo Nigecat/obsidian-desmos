@@ -10,7 +10,7 @@ import { Dsl, EquationStyle, isHexColor } from "./dsl";
 export class Renderer {
     static render(args: Dsl, settings: Settings, el: HTMLElement, plugin: Desmos): Promise<void> {
         return new Promise((resolve) => {
-            const { fields, equations, hash } = args;
+            const { fields, equations, hash, potential_error_cause } = args;
 
             // Calculate cache info for filesystem caching
             const vault_root = (plugin.app.vault.adapter as any).basePath; // fixme use the vault API instead of the adapter API (`app.vault.getRoot()` returns `/` so not sure how to get the actual root of the vault)
@@ -157,7 +157,7 @@ export class Renderer {
                     el.empty();
 
                     if (message.data.d === "error") {
-                        renderError(message.data.data, el);
+                        renderError(message.data.data, el, potential_error_cause);
                         resolve(); // let caller know we are done rendering
                     }
 

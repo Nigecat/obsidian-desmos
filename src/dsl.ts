@@ -65,10 +65,13 @@ export class Dsl {
     public readonly hash: string;
     public readonly equations: Equation[];
     public readonly fields: Fields;
+    /**  Supplementary error information if the source if valid but Desmos returns an error */
+    public readonly potential_error_cause?: string;
 
-    private constructor(equations: Equation[], fields: Partial<Fields>) {
+    private constructor(equations: Equation[], fields: Partial<Fields>, potential_error_cause?: string) {
         this.equations = equations;
         this.fields = { ...FIELD_DEFAULTS, ...fields };
+        this.potential_error_cause = potential_error_cause;
         Dsl.assert_sanity(this.fields);
         this.hash = createHash("sha256").update(JSON.stringify(this)).digest("hex");
     }
@@ -104,6 +107,7 @@ export class Dsl {
     public static parse(source: string): Dsl {
         const split = source.split("---");
 
+        let potential_error_cause: string | undefined;
         let equations: string[] | undefined;
         let fields: Partial<Fields> = {};
         switch (split.length) {
@@ -232,6 +236,12 @@ export class Dsl {
                 else {
                     this.assert_notbanned(segment, "graph configuration");
 
+                    if ((segment as string).includes("\\")) {
+                        // If the restriction included a `\` (the LaTeX control character) then the user may have tried to use the LaTeX syntax in the graph restriction (e.g `\frac{1}{2}`)
+                        //  Desmos does not allow this but returns a fairly archaic error - "A piecewise expression must have at least one condition."
+                        potential_error_cause = `You may have tried to use the LaTeX syntax in the graph restriction (<code>${segment}</code>), please use some sort of an alternative (e.g <code>\\frac{1}{2}</code> => <code>1/2</code>) as this is not allowed by Desmos.`;
+                    }
+
                     if (!equation.restriction) {
                         equation.restriction = "";
                     }
@@ -249,6 +259,6 @@ export class Dsl {
             throw new SyntaxError(`Graph size outside of accepted bounds (${MAX_SIZE}x${MAX_SIZE})`);
         }
 
-        return new Dsl(processed, fields);
+        return new Dsl(processed, fields, potential_error_cause);
     }
 }
