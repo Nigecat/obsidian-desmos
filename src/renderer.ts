@@ -1,13 +1,47 @@
 import Desmos from "./main";
 import { renderError } from "./error";
+import { CacheLocation } from "./settings";
 import { Dsl, EquationStyle } from "./dsl";
 import { normalizePath, Notice } from "obsidian";
-import { CacheLocation, Settings } from "./settings";
+
+interface RenderData {
+    args: Dsl;
+    el: HTMLElement;
+    cache_file?: string;
+    resolve: () => void;
+}
 
 export class Renderer {
-    static render(args: Dsl, settings: Settings, el: HTMLElement, plugin: Desmos): Promise<void> {
+    private readonly plugin: Desmos;
+    /** The set of graphs we are currently rendering, mapped by their hash */
+    private rendering: Map<string, RenderData> = new Map();
+    private active: boolean;
+
+    public constructor(plugin: Desmos) {
+        this.plugin = plugin;
+        this.active = false;
+    }
+
+    public activate() {
+        if (!this.active) {
+            window.addEventListener("message", this.handler.bind(this));
+            this.active = true;
+        }
+    }
+
+    public deactivate() {
+        if (this.active) {
+            window.removeEventListener("message", this.handler.bind(this));
+            this.active = false;
+        }
+    }
+
+    public render(args: Dsl, el: HTMLElement): Promise<void> {
         return new Promise(async (resolve) => {
-            const { fields, equations, potential_error_cause } = args;
+            const plugin = this.plugin;
+            const settings = plugin.settings;
+
+            const { fields, equations } = args;
             const hash = await args.hash();
 
             let cache_file: string | undefined;
@@ -23,6 +57,7 @@ export class Renderer {
                     return;
                 } else if (settings.cache.location == CacheLocation.Filesystem && settings.cache.directory) {
                     const adapter = plugin.app.vault.adapter;
+
                     cache_file = normalizePath(`${settings.cache.directory}/desmos-graph-${hash}.png`);
                     // If this graph is in the cache
                     if (await adapter.exists(cache_file)) {
@@ -48,7 +83,7 @@ export class Renderer {
                             .replaceAll("<", "\\\\le ")
                             .replaceAll(">", "\\\\ge ")
                     }",
-                    
+
                     ${(() => {
                         if (equation.style) {
                             if (
@@ -133,58 +168,65 @@ export class Renderer {
 
             el.appendChild(iframe);
 
-            const handler = async (
-                message: MessageEvent<{
-                    t: string;
-                    d: string;
-                    o: string;
-                    data: string;
-                    hash: string;
-                }>
-            ) => {
-                if (
-                    message.data.o === window.origin &&
-                    message.data.t === "desmos-graph" &&
-                    message.data.hash === hash
-                ) {
-                    el.empty();
+            this.rendering.set(hash, { args, el, resolve, cache_file });
+        });
+    }
 
-                    if (message.data.d === "error") {
-                        renderError(message.data.data, el, potential_error_cause);
-                        resolve(); // let caller know we are done rendering
-                    }
+    private async handler(
+        message: MessageEvent<{ t: string; d: string; o: string; data: string; hash: string }>
+    ): Promise<void> {
+        if (message.data.o === window.origin && message.data.t === "desmos-graph") {
+            const state = this.rendering.get(message.data.hash);
+            if (state) {
+                const { args, el, resolve, cache_file } = state;
 
-                    if (message.data.d === "render") {
-                        const { data } = message.data;
-                        window.removeEventListener("message", handler);
+                el.empty();
 
-                        const img = document.createElement("img");
-                        img.src = data;
-                        el.appendChild(img);
-                        resolve(); // let caller know we are done rendering
+                if (message.data.d === "error") {
+                    renderError(message.data.data, el, args.potential_error_cause);
+                    resolve(); // let caller know we are done rendering
+                } else if (message.data.d === "render") {
+                    const { data } = message.data;
 
-                        if (settings.cache.enabled) {
-                            if (settings.cache.location == CacheLocation.Memory) {
-                                plugin.graph_cache[hash] = data;
-                            } else if (settings.cache.location == CacheLocation.Filesystem) {
-                                const adapter = plugin.app.vault.adapter;
+                    const img = document.createElement("img");
+                    img.src = data;
+                    el.appendChild(img);
+                    resolve(); // let caller know we are done rendering
 
-                                if (cache_file) {
+                    const plugin = this.plugin;
+                    const settings = plugin.settings;
+                    const hash = await args.hash();
+                    if (settings.cache.enabled) {
+                        if (settings.cache.location == CacheLocation.Memory) {
+                            plugin.graph_cache[hash] = data;
+                        } else if (settings.cache.location == CacheLocation.Filesystem) {
+                            const adapter = plugin.app.vault.adapter;
+
+                            if (cache_file && settings.cache.directory) {
+                                if (await adapter.exists(settings.cache.directory)) {
                                     const buffer = Buffer.from(data.replace(/^data:image\/png;base64,/, ""), "base64");
                                     await adapter.writeBinary(cache_file, buffer);
                                 } else {
                                     new Notice(
-                                        `desmos-graph: filesystem caching enabled but no cache directory set, skipping cache`,
+                                        `desmos-graph: target cache directory '${settings.cache.directory}' does not exist, skipping cache`,
                                         10000
                                     );
                                 }
+                            } else {
+                                new Notice(
+                                    `desmos-graph: filesystem caching enabled but no cache directory set, skipping cache`,
+                                    10000
+                                );
                             }
                         }
                     }
                 }
-            };
 
-            window.addEventListener("message", handler);
-        });
+                this.rendering.delete(message.data.hash);
+            } else {
+                // do nothing if graph is not in render list (this should not happen)
+                console.warn(`Got graph not in render list, this is probably a bug - ${this.rendering}`);
+            }
+        }
     }
 }

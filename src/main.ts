@@ -9,16 +9,20 @@ export default class Desmos extends Plugin {
     settings: Settings;
     /** Helper for in-memory graph caching */
     graph_cache: Record<string, string> = {};
+    // @ts-ignore - we create the renderer before registering the codeblock, so we can ensure this object always exists
+    renderer: Renderer;
 
     async onload() {
         await this.loadSettings();
+        this.renderer = new Renderer(this);
+        this.renderer.activate();
 
         this.addSettingTab(new SettingsTab(this.app, this));
 
         this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
             try {
                 const args = Dsl.parse(source);
-                await Renderer.render(args, this.settings, el, this);
+                await this.renderer.render(args, el);
             } catch (err) {
                 if (err instanceof Error) {
                     renderError(err.message, el);
@@ -30,6 +34,10 @@ export default class Desmos extends Plugin {
                 }
             }
         });
+    }
+
+    async unload() {
+        this.renderer.deactivate();
     }
 
     async loadSettings() {
