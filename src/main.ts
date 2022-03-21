@@ -10,26 +10,25 @@ export default class Desmos extends Plugin {
     /** Helper for in-memory graph caching */
     graph_cache: Record<string, string> = {};
 
-    onload() {
-        // Wait until the settings are loaded before registering anything which relies on it
-        this.loadSettings().then(() => {
-            this.addSettingTab(new SettingsTab(this.app, this));
+    async onload() {
+        await this.loadSettings();
 
-            this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
-                try {
-                    const args = Dsl.parse(source);
-                    await Renderer.render(args, this.settings, el, this);
-                } catch (err) {
-                    if (err instanceof Error) {
-                        renderError(err.message, el);
-                    } else if (typeof err === "string") {
-                        renderError(err, el);
-                    } else {
-                        renderError("Unexpected error - see console for debug log", el);
-                        console.error(err);
-                    }
+        this.addSettingTab(new SettingsTab(this.app, this));
+
+        this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
+            try {
+                const args = Dsl.parse(source);
+                await Renderer.render(args, this.settings, el, this);
+            } catch (err) {
+                if (err instanceof Error) {
+                    renderError(err.message, el);
+                } else if (typeof err === "string") {
+                    renderError(err, el);
+                } else {
+                    renderError("Unexpected error - see console for debug log", el);
+                    console.error(err);
                 }
-            });
+            }
         });
     }
 
