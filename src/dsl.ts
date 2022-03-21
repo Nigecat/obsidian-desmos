@@ -188,7 +188,7 @@ export class Dsl {
 
         // Process equations
         const processed = equations.map((eq) => {
-            const segments = eq.split("|");
+            const segments = eq.split("|").map((segment) => segment.trim());
 
             // First segment is always the equation
             const equation: Equation = { equation: segments.shift() as unknown as string };

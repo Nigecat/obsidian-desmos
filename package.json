@@ -1,6 +1,6 @@
 {
     "name": "obsidian-desmos",
-    "version": "0.4.10",
+    "version": "0.4.11",
     "description": "Embed Desmos graphs into your notes",
     "main": "main.js",
     "author": "Nigecat",
