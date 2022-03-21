@@ -115,3 +115,7 @@ For example, if we wanted to create a straight green dashed line of `x=2` with a
 </details>
 
 For the sake of readability, we recommend using the following order (where applicable): `equation|restriction|style|color`
+
+### Offline Usage
+
+If you've rendered at least one graph while connected to the internet then any future graphs (irrespective of the cache setting) should be able to render (if they don't then make an issue here).
