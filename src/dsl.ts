@@ -67,9 +67,7 @@ export class Dsl {
         this.equations = equations;
         this.fields = { ...FIELD_DEFAULTS, ...fields };
         Dsl.assert_sanity(this.fields);
-        this.hash = createHash("sha256")
-            .update(JSON.stringify(this))
-            .digest("hex");
+        this.hash = createHash("sha256").update(JSON.stringify(this)).digest("hex");
     }
 
     /** Check if the fields are sane, throws a `SyntaxError` if they aren't */
@@ -103,8 +101,8 @@ export class Dsl {
     public static parse(source: string): Dsl {
         const split = source.split("---");
 
-        let equations: string[];
-        let fields: Partial<Fields>;
+        let equations: string[] | undefined;
+        let fields: Partial<Fields> = {};
         switch (split.length) {
             case 0: {
                 equations = [];
@@ -132,9 +130,7 @@ export class Dsl {
                     .reduce((settings, [key, value]) => {
                         if (FIELD_DEFAULTS.hasOwnProperty(key)) {
                             if (!value) {
-                                throw new SyntaxError(
-                                    `Field '${key}' must have a value`
-                                );
+                                throw new SyntaxError(`Field '${key}' must have a value`);
                             }
 
                             // We can use the defaults to determine the type of each field
@@ -144,19 +140,14 @@ export class Dsl {
                                 case "number": {
                                     const s = parseInt(value);
                                     if (Number.isNaN(s)) {
-                                        throw new SyntaxError(
-                                            `Field '${key}' must have an integer value`
-                                        );
+                                        throw new SyntaxError(`Field '${key}' must have an integer value`);
                                     }
                                     (settings as any)[key] = s;
                                     break;
                                 }
 
                                 case "string": {
-                                    this.assert_notbanned(
-                                        value,
-                                        `field value for key: '${key}'`
-                                    );
+                                    this.assert_notbanned(value, `field value for key: '${key}'`);
 
                                     (settings as any)[key] = value;
 
@@ -197,7 +188,7 @@ export class Dsl {
             const segments = eq.split("|");
 
             // First segment is always the equation
-            const equation: Equation = { equation: segments.shift() };
+            const equation: Equation = { equation: segments.shift() as unknown as string };
             this.assert_notbanned(equation.equation, "graph equation");
 
             // The rest of the segments can either be the restriction, style, or color
@@ -206,11 +197,7 @@ export class Dsl {
                 const segmentUpperCase = segment.toUpperCase();
 
                 // If this is a valid style constant
-                if (
-                    Object.values(EquationStyle).includes(
-                        segmentUpperCase as EquationStyle
-                    )
-                ) {
+                if (Object.values(EquationStyle).includes(segmentUpperCase as EquationStyle)) {
                     if (!equation.style) {
                         equation.style = segmentUpperCase as EquationStyle;
                     } else {
@@ -222,9 +209,7 @@ export class Dsl {
 
                 // If this is a valid color constant or hex code
                 else if (
-                    Object.values(EquationColor).includes(
-                        segmentUpperCase as EquationColor
-                    ) ||
+                    Object.values(EquationColor).includes(segmentUpperCase as EquationColor) ||
                     isHexColor(segment)
                 ) {
                     if (!equation.color) {

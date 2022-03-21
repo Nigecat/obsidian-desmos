@@ -1,6 +1,6 @@
 {
     "name": "obsidian-desmos",
-    "version": "0.4.8",
+    "version": "0.4.9",
     "description": "Embed Desmos graphs into your notes",
     "main": "main.js",
     "author": "Nigecat",
@@ -12,7 +12,6 @@
         "@rollup/plugin-commonjs": "^19.0.0",
         "@rollup/plugin-node-resolve": "^13.0.0",
         "@rollup/plugin-typescript": "^8.2.1",
-        "@types/debounce": "^1.2.0",
         "@types/node": "^15.12.2",
         "obsidian": "^0.12.5",
         "rollup": "^2.51.2",

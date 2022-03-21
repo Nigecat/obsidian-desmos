@@ -10,8 +10,8 @@ export enum CacheLocation {
 export interface Settings {
     /** The program version these settings were created in */
     version: string;
-    /** The debounce timer (in ms) */
-    debounce: number;
+    // /** The debounce timer (in ms) */
+    // debounce: number;
     cache: CacheSettings;
 }
 
@@ -22,7 +22,7 @@ export interface CacheSettings {
 }
 
 const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
-    debounce: 500,
+    // debounce: 500,
     cache: {
         enabled: true,
         location: CacheLocation.Memory,
@@ -57,53 +57,44 @@ export class SettingsTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        new Setting(containerEl)
-            .setName("Debounce Time (ms)")
-            .setDesc(
-                "How long to wait after a keypress to render the graph (set to 0 to disable, requires restart to take effect)"
-            )
-            .addText((text) =>
-                text
-                    .setValue(this.plugin.settings.debounce.toString())
-                    .onChange(async (value) => {
-                        const val = parseInt(value);
-                        this.plugin.settings.debounce =
-                            Number.isNaN(val) || val < 0
-                                ? DEFAULT_SETTINGS_STATIC.debounce
-                                : val;
-                        await this.plugin.saveSettings();
-                    })
-            );
+        // new Setting(containerEl)
+        //     .setName("Debounce Time (ms)")
+        //     .setDesc(
+        //         "How long to wait after a keypress to render the graph (set to 0 to disable, requires restart to take effect)"
+        //     )
+        //     .addText((text) =>
+        //         text.setValue(this.plugin.settings.debounce.toString()).onChange(async (value) => {
+        //             const val = parseInt(value);
+        //             this.plugin.settings.debounce =
+        //                 Number.isNaN(val) || val < 0 ? DEFAULT_SETTINGS_STATIC.debounce : val;
+        //             await this.plugin.saveSettings();
+        //         })
+        //     );
 
         new Setting(containerEl)
             .setName("Cache")
             .setDesc("Whether to cache the rendered graphs")
             .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.cache.enabled)
-                    .onChange(async (value) => {
-                        this.plugin.settings.cache.enabled = value;
-                        await this.plugin.saveSettings();
+                toggle.setValue(this.plugin.settings.cache.enabled).onChange(async (value) => {
+                    this.plugin.settings.cache.enabled = value;
+                    await this.plugin.saveSettings();
 
-                        // Reset the display so the new state can render
-                        this.display();
-                    })
+                    // Reset the display so the new state can render
+                    this.display();
+                })
             );
 
         if (this.plugin.settings.cache.enabled) {
             new Setting(containerEl)
                 .setName("Cache location")
-                .setDesc(
-                    "Set the location to cache rendered graphs (note that memory caching is not persistent)"
-                )
+                .setDesc("Set the location to cache rendered graphs (note that memory caching is not persistent)")
                 .addDropdown((dropdown) =>
                     dropdown
                         .addOption(CacheLocation.Memory, "Memory")
                         .addOption(CacheLocation.Filesystem, "Filesystem")
                         .setValue(this.plugin.settings.cache.location)
                         .onChange(async (value) => {
-                            this.plugin.settings.cache.location =
-                                value as CacheLocation;
+                            this.plugin.settings.cache.location = value as CacheLocation;
                             await this.plugin.saveSettings();
 
                             // Reset the display so the new state can render
@@ -111,9 +102,7 @@ export class SettingsTab extends PluginSettingTab {
                         })
                 );
 
-            if (
-                this.plugin.settings.cache.location == CacheLocation.Filesystem
-            ) {
+            if (this.plugin.settings.cache.location == CacheLocation.Filesystem) {
                 new Setting(containerEl)
                     .setName("Cache Directory")
                     .setDesc(
@@ -122,7 +111,7 @@ export class SettingsTab extends PluginSettingTab {
                     .addText((text) =>
                         text
                             .setPlaceholder(tmpdir())
-                            .setValue(this.plugin.settings.cache.directory)
+                            .setValue(this.plugin.settings.cache.directory ?? "")
                             .onChange(async (value) => {
                                 this.plugin.settings.cache.directory = value;
                                 await this.plugin.saveSettings();
