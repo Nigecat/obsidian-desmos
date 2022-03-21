@@ -7,6 +7,10 @@ Note that this plugin **will not** work offline unless you have enabled filesyst
 
 Download the attached files from the [latest release](https://github.com/Nigecat/obsidian-desmos/releases/latest) and place them in `<vault-root>/.obsidian/plugins/obsidian-desmos/` (you may need to create any missing directories) then enable community plugins (if needed) and toggle the `Desmos` plugin on.
 
+# Exporting
+
+If you wish to export a note with a graph in it to a pdf then **caching must be enabled and the graph(s) must be in the cache** (meaning you've viewed it at least once) - as however Obsidian is doing the pdf export causes the Desmos API to break and never return a rendered graph.  
+
 # Usage
 
 The most basic usage of this plugin involves creating a codeblock with the tag `desmos-graph` and placing the equations you wish to graph in the body:
