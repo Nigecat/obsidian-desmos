@@ -12,6 +12,8 @@ export interface Settings {
     // /** The debounce timer (in ms) */
     // debounce: number;
     cache: CacheSettings;
+    /** Whether live mode is enabled */
+    live: boolean;
 }
 
 export interface CacheSettings {
@@ -22,6 +24,7 @@ export interface CacheSettings {
 
 const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
     // debounce: 500,
+    live: false,
     cache: {
         enabled: true,
         location: CacheLocation.Memory,
@@ -69,6 +72,18 @@ export class SettingsTab extends PluginSettingTab {
         //             await this.plugin.saveSettings();
         //         })
         //     );
+
+        new Setting(containerEl)
+            .setName("Live")
+            .setDesc(
+                "Whether live mode is enabled, this will allow you to directly interact with the rendered graph to modify the positioning and scale"
+            )
+            .addToggle((toggle) =>
+                toggle.setValue(this.plugin.settings.live).onChange(async (value) => {
+                    this.plugin.settings.live = value;
+                    await this.plugin.saveSettings();
+                })
+            );
 
         new Setting(containerEl)
             .setName("Cache")
