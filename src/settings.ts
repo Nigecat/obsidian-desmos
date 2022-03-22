@@ -9,8 +9,8 @@ export enum CacheLocation {
 export interface Settings {
     /** The program version these settings were created in */
     version: string;
-    // /** The debounce timer (in ms) */
-    // debounce: number;
+    /** The debounce timer (in ms) */
+    debounce: number;
     cache: CacheSettings;
 }
 
@@ -21,7 +21,7 @@ export interface CacheSettings {
 }
 
 const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
-    // debounce: 500,
+    debounce: 500,
     cache: {
         enabled: true,
         location: CacheLocation.Memory,
@@ -56,19 +56,19 @@ export class SettingsTab extends PluginSettingTab {
 
         containerEl.empty();
 
-        // new Setting(containerEl)
-        //     .setName("Debounce Time (ms)")
-        //     .setDesc(
-        //         "How long to wait after a keypress to render the graph (set to 0 to disable, requires restart to take effect)"
-        //     )
-        //     .addText((text) =>
-        //         text.setValue(this.plugin.settings.debounce.toString()).onChange(async (value) => {
-        //             const val = parseInt(value);
-        //             this.plugin.settings.debounce =
-        //                 Number.isNaN(val) || val < 0 ? DEFAULT_SETTINGS_STATIC.debounce : val;
-        //             await this.plugin.saveSettings();
-        //         })
-        //     );
+        new Setting(containerEl)
+            .setName("Debounce Time (ms)")
+            .setDesc(
+                "How long to wait after a keypress to render the graph (set to 0 to disable, requires restart to take effect)"
+            )
+            .addText((text) =>
+                text.setValue(this.plugin.settings.debounce.toString()).onChange(async (value) => {
+                    const val = parseInt(value);
+                    this.plugin.settings.debounce =
+                        Number.isNaN(val) || val < 0 ? DEFAULT_SETTINGS_STATIC.debounce : val;
+                    await this.plugin.saveSettings();
+                })
+            );
 
         new Setting(containerEl)
             .setName("Cache")
