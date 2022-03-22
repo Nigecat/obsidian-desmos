@@ -2,6 +2,7 @@ import Desmos from "./main";
 import { renderError } from "./error";
 import { CacheLocation } from "./settings";
 import { Dsl, EquationStyle } from "./dsl";
+import { Desmos as DesmosAPI } from "Desmos";
 import { normalizePath, Notice } from "obsidian";
 
 interface RenderData {
