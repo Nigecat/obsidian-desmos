@@ -69,12 +69,12 @@ export class Dsl {
     public readonly equations: Equation[];
     public readonly fields: Fields;
     /**  Supplementary error information if the source if valid but Desmos returns an error */
-    public readonly potential_error_cause?: HTMLSpanElement;
+    public readonly potentialErrorCause?: HTMLSpanElement;
 
-    private constructor(equations: Equation[], fields: Partial<Fields>, potential_error_cause?: HTMLSpanElement) {
+    private constructor(equations: Equation[], fields: Partial<Fields>, potentialErrorCause?: HTMLSpanElement) {
         this.equations = equations;
         this.fields = { ...FIELD_DEFAULTS, ...fields };
-        this.potential_error_cause = potential_error_cause;
+        this.potentialErrorCause = potentialErrorCause;
         Dsl.assert_sanity(this.fields);
     }
 
@@ -107,8 +107,7 @@ export class Dsl {
         }
     }
 
-    /** Ensure a string does not contain any of the banned characters
-     *  (this is mostly a sanity check to prevent vulnerabilities in later interpolation) */
+    /** Ensure a string does not contain any of the banned characters (this is mostly a sanity check to prevent vulnerabilities in later interpolation) */
     private static assert_notbanned(value: string, ctx: string) {
         const bannedChars = ['"', "'", "`"];
 
@@ -122,7 +121,7 @@ export class Dsl {
     public static parse(source: string): Dsl {
         const split = source.split("---");
 
-        let potential_error_cause: HTMLSpanElement | undefined;
+        let potentialErrorCause: HTMLSpanElement | undefined;
         let equations: string[] | undefined;
         let fields: Partial<Fields> = {};
         switch (split.length) {
@@ -157,11 +156,11 @@ export class Dsl {
                             }
 
                             // We can use the defaults to determine the type of each field
-                            const field_v = (FIELD_DEFAULTS as any)[key];
-                            const field_t = typeof field_v;
-                            switch (field_t) {
+                            const fieldValue = (FIELD_DEFAULTS as any)[key];
+                            const fieldType = typeof fieldValue;
+                            switch (fieldType) {
                                 case "number": {
-                                    const s = parseInt(value);
+                                    const s = parseInt(value, 10);
                                     if (Number.isNaN(s)) {
                                         throw new SyntaxError(`Field '${key}' must have an integer value`);
                                     }
@@ -171,7 +170,7 @@ export class Dsl {
 
                                 default: {
                                     throw new SyntaxError(
-                                        `Got unrecognized field type ${field_t} with value ${field_v}, this is a bug.`
+                                        `Got unrecognized field type ${fieldType} with value ${fieldValue}, this is a bug.`
                                     );
                                 }
 
@@ -186,7 +185,7 @@ export class Dsl {
                                 // case "object": {
                                 //     const val = JSON.parse(value);
                                 //     if (
-                                //         val.constructor === field_v.constructor
+                                //         val.constructor === fieldValue.constructor
                                 //     ) {
                                 //         (settings as any)[key] = val;
                                 //     }
@@ -259,21 +258,21 @@ export class Dsl {
                     if ((segment as string).includes("\\")) {
                         // If the restriction included a `\` (the LaTeX control character) then the user may have tried to use the LaTeX syntax in the graph restriction (e.g `\frac{1}{2}`)
                         //  Desmos does not allow this but returns a fairly archaic error - "A piecewise expression must have at least one condition."
-                        potential_error_cause = document.createElement("span");
+                        potentialErrorCause = document.createElement("span");
 
-                        let pre = document.createElement("span");
+                        const pre = document.createElement("span");
                         pre.innerHTML = "You may have tried to use the LaTeX syntax in the graph restriction (";
 
-                        let inner = document.createElement("code");
+                        const inner = document.createElement("code");
                         inner.innerText = segment;
 
-                        let post = document.createElement("span");
+                        const post = document.createElement("span");
                         post.innerHTML =
                             "), please use some sort of an alternative (e.g <code>\\frac{1}{2}</code> => <code>1/2</code>) as this is not supported by Desmos.";
 
-                        potential_error_cause.appendChild(pre);
-                        potential_error_cause.appendChild(inner);
-                        potential_error_cause.appendChild(post);
+                        potentialErrorCause.appendChild(pre);
+                        potentialErrorCause.appendChild(inner);
+                        potentialErrorCause.appendChild(post);
                     }
 
                     if (!equation.restriction) {
@@ -293,6 +292,6 @@ export class Dsl {
             throw new SyntaxError(`Graph size outside of accepted bounds (${MAX_SIZE}x${MAX_SIZE})`);
         }
 
-        return new Dsl(processed, fields, potential_error_cause);
+        return new Dsl(processed, fields, potentialErrorCause);
     }
 }
