@@ -2,6 +2,7 @@
 const MAX_SIZE = 99999;
 
 export interface Fields {
+    lock: boolean;
     width: number;
     height: number;
     left: number;
@@ -11,6 +12,7 @@ export interface Fields {
 }
 
 const FIELD_DEFAULTS: Fields = {
+    lock: false,
     width: 600,
     height: 400,
     left: -10,
@@ -152,13 +154,14 @@ export class Dsl {
                     .reduce((settings, [k, value]) => {
                         const key = k.toLowerCase();
                         if (FIELD_DEFAULTS.hasOwnProperty(key)) {
-                            if (!value) {
-                                throw new SyntaxError(`Field '${key}' must have a value`);
-                            }
-
                             // We can use the defaults to determine the type of each field
                             const field_v = (FIELD_DEFAULTS as any)[key];
                             const field_t = typeof field_v;
+
+                            if (field_t !== "boolean" && !value) {
+                                throw new SyntaxError(`Field '${key}' must have a value`);
+                            }
+
                             switch (field_t) {
                                 case "number": {
                                     const s = parseInt(value);
@@ -166,6 +169,15 @@ export class Dsl {
                                         throw new SyntaxError(`Field '${key}' must have an integer value`);
                                     }
                                     (settings as any)[key] = s;
+                                    break;
+                                }
+
+                                case "boolean": {
+                                    if (value) {
+                                        throw new SyntaxError(`Unexpected value '${value}' for boolean key '${key}'`);
+                                    }
+
+                                    (settings as any)[key] = true;
                                     break;
                                 }
 
