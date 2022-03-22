@@ -5,6 +5,10 @@ Works both online and offline (see note at end of README).
 
 # Installation
 
+### Automatic (Recommended)
+Search for `Desmos` in the inbuilt Obsidian community plugin browser and install it from there.
+
+### Manual
 Download the attached files from the [latest release](https://github.com/Nigecat/obsidian-desmos/releases/latest) and place them in `<vault-root>/.obsidian/plugins/obsidian-desmos/` (you may need to create any missing directories) then enable community plugins (if needed) and toggle the `Desmos` plugin on.
 
 # Exporting
