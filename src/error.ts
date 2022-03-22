@@ -10,9 +10,9 @@ export function renderError(err: string, el: HTMLElement, extra?: HTMLSpanElemen
     wrapper.appendChild(ctx);
 
     if (extra) {
-        const message_extra = document.createElement("strong");
-        message_extra.innerHTML = "<br>Note: ";
-        wrapper.appendChild(message_extra);
+        const messageExtra = document.createElement("strong");
+        messageExtra.innerHTML = "<br>Note: ";
+        wrapper.appendChild(messageExtra);
         wrapper.appendChild(extra);
     }
 

@@ -8,7 +8,7 @@ export default class Desmos extends Plugin {
     // @ts-ignore - we load the settings before accessing them, so we can ensure this object always exists
     settings: Settings;
     /** Helper for in-memory graph caching */
-    graph_cache: Record<string, string> = {};
+    graphCache: Record<string, string> = {};
     // @ts-ignore - we create the renderer before registering the codeblock, so we can ensure this object always exists
     renderer: Renderer;
 
@@ -47,7 +47,7 @@ export default class Desmos extends Plugin {
             settings = DEFAULT_SETTINGS(this);
         }
 
-        if (settings.version != this.manifest.version) {
+        if (settings.version !== this.manifest.version) {
             settings = migrateSettings(this, settings);
         }
 
