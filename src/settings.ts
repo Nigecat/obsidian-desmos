@@ -31,8 +31,7 @@ const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
     },
 };
 
-/** Get the default settings for the given plugin.
- * This simply uses `DEFAULT_SETTINGS_STATIC` and patches the version from the manifest. */
+/** Get the default settings for the given plugin. This simply uses `DEFAULT_SETTINGS_STATIC` and patches the version from the manifest. */
 export function DEFAULT_SETTINGS(plugin: Desmos): Settings {
     return {
         version: plugin.manifest.version,
@@ -55,7 +54,7 @@ export class SettingsTab extends PluginSettingTab {
     }
 
     display() {
-        let { containerEl } = this;
+        const { containerEl } = this;
 
         containerEl.empty();
 
@@ -116,7 +115,7 @@ export class SettingsTab extends PluginSettingTab {
                         })
                 );
 
-            if (this.plugin.settings.cache.location == CacheLocation.Filesystem) {
+            if (this.plugin.settings.cache.location === CacheLocation.Filesystem) {
                 new Setting(containerEl)
                     .setName("Cache Directory")
                     .setDesc(

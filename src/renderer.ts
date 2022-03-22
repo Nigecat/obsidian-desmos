@@ -7,7 +7,7 @@ import { normalizePath, Notice } from "obsidian";
 interface RenderData {
     args: Dsl;
     el: HTMLElement;
-    cache_file?: string;
+    cacheFile?: string;
     resolve: () => void;
 }
 
@@ -44,25 +44,25 @@ export class Renderer {
             const { fields, equations } = args;
             const hash = await args.hash();
 
-            let cache_file: string | undefined;
+            let cacheFile: string | undefined;
 
             // If this graph is in the cache then fetch it
             if (settings.cache.enabled) {
-                if (settings.cache.location == CacheLocation.Memory && hash in plugin.graph_cache) {
-                    const data = plugin.graph_cache[hash];
+                if (settings.cache.location === CacheLocation.Memory && hash in plugin.graphCache) {
+                    const data = plugin.graphCache[hash];
                     const img = document.createElement("img");
                     img.src = data;
                     el.appendChild(img);
                     resolve();
                     return;
-                } else if (settings.cache.location == CacheLocation.Filesystem && settings.cache.directory) {
+                } else if (settings.cache.location === CacheLocation.Filesystem && settings.cache.directory) {
                     const adapter = plugin.app.vault.adapter;
 
-                    cache_file = normalizePath(`${settings.cache.directory}/desmos-graph-${hash}.png`);
+                    cacheFile = normalizePath(`${settings.cache.directory}/desmos-graph-${hash}.png`);
                     // If this graph is in the cache
-                    if (await adapter.exists(cache_file)) {
+                    if (await adapter.exists(cacheFile)) {
                         const img = document.createElement("img");
-                        img.src = adapter.getResourcePath(cache_file);
+                        img.src = adapter.getResourcePath(cacheFile);
                         el.appendChild(img);
                         resolve();
                         return;
@@ -114,8 +114,8 @@ export class Renderer {
             //   otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
             // Interestingly enough, this script functions perfectly fine fully offline - so we could include a vendored copy if need be
             //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
-            const html_src_head = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
-            const html_src_body = `
+            const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
+            const htmlBody = `
             <div id="calculator-${hash}" style="width: ${fields.width}px; height: ${fields.height}px;"></div>
             <script>
                 const options = {
@@ -155,7 +155,7 @@ export class Renderer {
                 });
             </script>
         `;
-            const html_src = `<html><head>${html_src_head}</head><body>${html_src_body}</body>`;
+            const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
 
             const iframe = document.createElement("iframe");
             iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
@@ -163,12 +163,12 @@ export class Renderer {
             iframe.height = fields.height.toString();
             iframe.style.border = "none";
             iframe.scrolling = "no"; // fixme use a non-depreciated function
-            iframe.srcdoc = html_src;
+            iframe.srcdoc = htmlSrc;
             // iframe.style.display = "none"; // fixme hiding the iframe breaks the positioning
 
             el.appendChild(iframe);
 
-            this.rendering.set(hash, { args, el, resolve, cache_file });
+            this.rendering.set(hash, { args, el, resolve, cacheFile });
         });
     }
 
@@ -178,12 +178,12 @@ export class Renderer {
         if (message.data.o === window.origin && message.data.t === "desmos-graph") {
             const state = this.rendering.get(message.data.hash);
             if (state) {
-                const { args, el, resolve, cache_file } = state;
+                const { args, el, resolve, cacheFile } = state;
 
                 el.empty();
 
                 if (message.data.d === "error") {
-                    renderError(message.data.data, el, args.potential_error_cause);
+                    renderError(message.data.data, el, args.potentialErrorCause);
                     resolve(); // let caller know we are done rendering
                 } else if (message.data.d === "render") {
                     const { data } = message.data;
@@ -197,22 +197,24 @@ export class Renderer {
                     const settings = plugin.settings;
                     const hash = await args.hash();
                     if (settings.cache.enabled) {
-                        if (settings.cache.location == CacheLocation.Memory) {
-                            plugin.graph_cache[hash] = data;
-                        } else if (settings.cache.location == CacheLocation.Filesystem) {
+                        if (settings.cache.location === CacheLocation.Memory) {
+                            plugin.graphCache[hash] = data;
+                        } else if (settings.cache.location === CacheLocation.Filesystem) {
                             const adapter = plugin.app.vault.adapter;
 
-                            if (cache_file && settings.cache.directory) {
+                            if (cacheFile && settings.cache.directory) {
                                 if (await adapter.exists(settings.cache.directory)) {
                                     const buffer = Buffer.from(data.replace(/^data:image\/png;base64,/, ""), "base64");
-                                    await adapter.writeBinary(cache_file, buffer);
+                                    await adapter.writeBinary(cacheFile, buffer);
                                 } else {
+                                    // tslint:disable-next-line:no-unused-expression
                                     new Notice(
                                         `desmos-graph: target cache directory '${settings.cache.directory}' does not exist, skipping cache`,
                                         10000
                                     );
                                 }
                             } else {
+                                // tslint:disable-next-line:no-unused-expression
                                 new Notice(
                                     `desmos-graph: filesystem caching enabled but no cache directory set, skipping cache`,
                                     10000
