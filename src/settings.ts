@@ -86,7 +86,9 @@ export class SettingsTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName("Cache")
-            .setDesc("Whether to cache the rendered graphs")
+            .setDesc(
+                "Whether to cache the rendered graphs (note that if live mode is enabled caching will only run on graphs marked with `lock`)"
+            )
             .addToggle((toggle) =>
                 toggle.setValue(this.plugin.settings.cache.enabled).onChange(async (value) => {
                     this.plugin.settings.cache.enabled = value;

@@ -11,6 +11,7 @@ y=\frac{1}{2x}+3
 ```
 
 ```desmos-graph
+lock;
 ---
 y=\frac{1}{x}
 y=3/2|green

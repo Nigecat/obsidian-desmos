@@ -7,6 +7,7 @@ import { normalizePath, Notice } from "obsidian";
 interface RenderData {
     args: Dsl;
     el: HTMLElement;
+    live: boolean;
     cacheFile?: string;
     resolve: () => void;
 }
@@ -36,7 +37,7 @@ export class Renderer {
         }
     }
 
-    public render(args: Dsl, el: HTMLElement): Promise<void> {
+    public render(live: boolean, args: Dsl, el: HTMLElement): Promise<void> {
         return new Promise(async (resolve) => {
             const plugin = this.plugin;
             const settings = plugin.settings;
@@ -55,7 +56,7 @@ export class Renderer {
                     el.appendChild(img);
                     resolve();
                     return;
-                } else if (settings.cache.location === CacheLocation.Filesystem && settings.cache.directory) {
+                } else if (!live && settings.cache.location === CacheLocation.Filesystem && settings.cache.directory) {
                     const adapter = plugin.app.vault.adapter;
 
                     cacheFile = normalizePath(`${settings.cache.directory}/desmos-graph-${hash}.png`);
@@ -147,12 +148,22 @@ export class Renderer {
                     }
                 });
 
-                calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
-                    document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", d: "render", o: "${
-                        window.origin
-                    }", data, hash: "${hash}" }, "${window.origin}");
-                });
+                if (${live}) {
+                    // todo
+                    console.warn("live mode not implemented yet"); 
+                    calculator.observe("graphpaperBounds", function() {
+                        const bounds = calculator.graphpaperBounds.mathCoordinates;
+                      
+                        console.log(bounds);
+                    });
+                } else {
+                    calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
+                        document.body.innerHTML = "";
+                        parent.postMessage({ t: "desmos-graph", d: "render", o: "${
+                            window.origin
+                        }", data, hash: "${hash}" }, "${window.origin}");
+                    });
+                }
             </script>
         `;
             const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
@@ -168,7 +179,7 @@ export class Renderer {
 
             el.appendChild(iframe);
 
-            this.rendering.set(hash, { args, el, resolve, cacheFile });
+            this.rendering.set(hash, { args, el, live, resolve, cacheFile });
         });
     }
 
@@ -199,7 +210,7 @@ export class Renderer {
                     if (settings.cache.enabled) {
                         if (settings.cache.location === CacheLocation.Memory) {
                             plugin.graphCache[hash] = data;
-                        } else if (settings.cache.location === CacheLocation.Filesystem) {
+                        } else if (!state.live && settings.cache.location === CacheLocation.Filesystem) {
                             const adapter = plugin.app.vault.adapter;
 
                             if (cacheFile && settings.cache.directory) {
