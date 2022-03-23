@@ -1,7 +1,9 @@
 # Obsidian Desmos
 
 Render [Desmos](https://www.desmos.com/calculator) graphs right inside your notes.  
-Works both online and offline (see note at end of README).
+Works both online and [offline](#offline-usage).
+
+![demo](https://user-images.githubusercontent.com/48661288/159597221-afc18198-5a3f-4a58-a6b2-a3a552a92a7f.png)
 
 # Installation
 
