@@ -1,13 +1,13 @@
 {
     "name": "obsidian-desmos",
-    "version": "0.5.3",
+    "version": "0.5.4",
     "description": "Embed Desmos graphs into your notes",
     "main": "main.js",
     "author": "Nigecat",
     "scripts": {
         "build": "rollup --config rollup.config.js --environment BUILD:production",
         "build:dev": "rollup --config rollup.config.js -w",
-        "lint": "tslint -c tslint.json 'src/**/*.ts"
+        "lint": "tslint -c tslint.json 'src/**/*.ts'"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^19.0.0",
