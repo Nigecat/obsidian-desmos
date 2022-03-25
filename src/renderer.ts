@@ -124,6 +124,7 @@ export class Renderer {
                     lockViewPort: true,
                     zoomButtons: false,
                     trace: false,
+                    showGrid: ${fields.grid},
                 };
 
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator-${hash}"), options);

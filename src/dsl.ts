@@ -8,6 +8,7 @@ export interface Fields {
     right: number;
     bottom: number;
     top: number;
+    grid: boolean;
 }
 
 const FIELD_DEFAULTS: Fields = {
@@ -17,6 +18,7 @@ const FIELD_DEFAULTS: Fields = {
     right: 10,
     bottom: -7,
     top: 7,
+    grid: true,
 };
 
 export interface Equation {
@@ -151,13 +153,15 @@ export class Dsl {
                     .reduce((settings, [k, value]) => {
                         const key = k.toLowerCase();
                         if (FIELD_DEFAULTS.hasOwnProperty(key)) {
-                            if (!value) {
-                                throw new SyntaxError(`Field '${key}' must have a value`);
-                            }
-
                             // We can use the defaults to determine the type of each field
                             const fieldValue = (FIELD_DEFAULTS as any)[key];
                             const fieldType = typeof fieldValue;
+
+                            // Boolean fields default to `true`
+                            if (fieldType !== "boolean" && !value) {
+                                throw new SyntaxError(`Field '${key}' must have a value`);
+                            }
+
                             switch (fieldType) {
                                 case "number": {
                                     const s = parseInt(value, 10);
@@ -165,6 +169,21 @@ export class Dsl {
                                         throw new SyntaxError(`Field '${key}' must have an integer value`);
                                     }
                                     (settings as any)[key] = s;
+                                    break;
+                                }
+
+                                case "boolean": {
+                                    if (!value) {
+                                        (settings as any)[key] = true;
+                                    } else {
+                                        if (!["true", "false"].includes(value.toLowerCase())) {
+                                            throw new SyntaxError(
+                                                `Field '${key}' requres a boolean value 'true'/'false' (omit a value to default to 'true')`
+                                            );
+                                        }
+
+                                        (settings as any)[key] = value.toLowerCase() === "true" ? true : false;
+                                    }
                                     break;
                                 }
 
