@@ -77,6 +77,7 @@ export class Dsl {
         this.equations = equations;
 
         // Dynamically adjust graph boundary if the defaults would cause an invalid graph with the fields supplied by the user
+        // todo there should be a better way of doing this
         const defaultGraphWidth = Math.abs(FIELD_DEFAULTS.left) + Math.abs(FIELD_DEFAULTS.right);
         const defaultGraphHeight = Math.abs(FIELD_DEFAULTS.bottom) + Math.abs(FIELD_DEFAULTS.top);
         if (fields.left !== undefined && fields.right === undefined && fields.left > FIELD_DEFAULTS.right) {
