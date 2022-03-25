@@ -62,7 +62,7 @@ You can restrict the bounds of the graph and apply other settings by placing a `
   ![restriction](https://user-images.githubusercontent.com/48661288/158957249-eb3f063e-e4c4-4d50-9935-d4fb95fd2336.png)
 </details>
 
-You can set the dimensions of the rendered image by using the `height` and `width` fields.
+You can set the dimensions of the rendered image by using the `height` and `width` fields.  
 Additionally, you can disable the graph grid by setting `grid=false`.
 
 ## Equation Control
