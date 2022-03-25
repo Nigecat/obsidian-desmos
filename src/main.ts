@@ -19,9 +19,9 @@ export default class Desmos extends Plugin {
 
         this.addSettingTab(new SettingsTab(this.app, this));
 
-        this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
+        this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el, ctx) => {
             try {
-                const args = Dsl.parse(source);
+                const args = Dsl.parse(this, ctx, el, source);
                 const live = args.fields.lock ? false : this.settings.live;
                 await this.renderer.render(live, args, el);
             } catch (err) {

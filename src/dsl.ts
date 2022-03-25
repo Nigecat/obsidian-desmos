@@ -1,5 +1,11 @@
+import Desmos from "./main";
+import { debounce, Debouncer, MarkdownPostProcessorContext, normalizePath } from "obsidian";
+
 /// The maximum dimensions of a graph
 const MAX_SIZE = 99999;
+
+/// The time to wait (in ms) before triggering an update
+const UPDATE_TIMEOUT = 250;
 
 export interface Fields {
     lock: boolean;
@@ -68,25 +74,41 @@ export function isHexColor(value: string): value is HexColor {
 
 export class Dsl {
     private _hash?: string;
+    public fields: Fields;
     public readonly equations: Equation[];
-    public readonly fields: Fields;
     /**  Supplementary error information if the source if valid but Desmos returns an error */
     public readonly potentialErrorCause?: HTMLSpanElement;
+    public readonly update: Debouncer<[Partial<Fields>]>;
 
-    private constructor(equations: Equation[], fields: Partial<Fields>, potentialErrorCause?: HTMLSpanElement) {
+    private plugin: Desmos;
+    private ctx: MarkdownPostProcessorContext;
+    private target: HTMLElement;
+
+    private constructor(
+        plugin: Desmos,
+        ctx: MarkdownPostProcessorContext,
+        target: HTMLElement,
+        equations: Equation[],
+        fields: Partial<Fields>,
+        potentialErrorCause?: HTMLSpanElement
+    ) {
+        this.plugin = plugin;
+        this.ctx = ctx;
+        this.target = target;
         this.equations = equations;
         this.fields = { ...FIELD_DEFAULTS, ...fields };
         this.potentialErrorCause = potentialErrorCause;
+        this.update = debounce(this._update.bind(this), UPDATE_TIMEOUT, true);
         Dsl.assert_sanity(this.fields);
     }
 
-    /** Get a (hex) SHA-256 hash of this object */
+    /** Get a (hex) SHA-256 hash of the fields and equations of this object */
     public async hash(): Promise<string> {
         if (this._hash) {
             return this._hash;
         }
 
-        const data = new TextEncoder().encode(JSON.stringify(this));
+        const data = new TextEncoder().encode(JSON.stringify({ fields: this.fields, equations: this.equations }));
         const buffer = await crypto.subtle.digest("SHA-256", data);
         const raw = Array.from(new Uint8Array(buffer));
         this._hash = raw.map((b) => b.toString(16).padStart(2, "0")).join(""); // convert binary hash to hex
@@ -120,7 +142,31 @@ export class Dsl {
         }
     }
 
-    public static parse(source: string): Dsl {
+    private async _update(fields: Partial<Fields>): Promise<void> {
+        const file = this.ctx.sourcePath;
+        const location = this.ctx.getSectionInfo(this.target);
+        if (file && location) {
+            this.fields = { ...this.fields, ...fields };
+
+            const path = normalizePath(file);
+            const contents = await this.plugin.app.vault.adapter.read(path);
+
+            const start = contents.indexOf(location.text);
+            const end = start + location.text.length;
+            console.log(location.text);
+            const codeblock = contents.slice(start, end);
+
+            console.log(`${start}..${end}`);
+            console.log(contents.slice(start, end));
+
+            // todo
+            // console.log(this.fields, file, location);
+        } else {
+            console.error("unable to find source of live graph");
+        }
+    }
+
+    public static parse(plugin: Desmos, ctx: MarkdownPostProcessorContext, target: HTMLElement, source: string): Dsl {
         const split = source.split("---");
 
         let potentialErrorCause: HTMLSpanElement | undefined;
@@ -163,9 +209,9 @@ export class Dsl {
 
                             switch (fieldType) {
                                 case "number": {
-                                    const s = parseInt(value, 10);
+                                    const s = parseFloat(value);
                                     if (Number.isNaN(s)) {
-                                        throw new SyntaxError(`Field '${key}' must have an integer value`);
+                                        throw new SyntaxError(`Field '${key}' must have an integer (or float) value`);
                                     }
                                     (settings as any)[key] = s;
                                     break;
@@ -304,6 +350,6 @@ export class Dsl {
             throw new SyntaxError(`Graph size outside of accepted bounds (${MAX_SIZE}x${MAX_SIZE})`);
         }
 
-        return new Dsl(processed, fields, potentialErrorCause);
+        return new Dsl(plugin, ctx, target, processed, fields, potentialErrorCause);
     }
 }

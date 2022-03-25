@@ -1,15 +1,15 @@
 import Desmos from "./main";
 import { renderError } from "./error";
 import { CacheLocation } from "./settings";
-import { Dsl, EquationStyle } from "./dsl";
-import { Desmos as DesmosAPI } from "Desmos";
 import { normalizePath, Notice } from "obsidian";
+import { Dsl, EquationStyle, Fields } from "./dsl";
 
 interface RenderData {
     args: Dsl;
     el: HTMLElement;
     live: boolean;
     cacheFile?: string;
+    // NOTE: This promise will never be resolved if rendering in live mode
     resolve: () => void;
 }
 
@@ -150,12 +150,18 @@ export class Renderer {
                 });
 
                 if (${live}) {
-                    // todo
-                    console.warn("live mode not implemented yet"); 
-                    calculator.observe("graphpaperBounds", function() {
+                    calculator.observe("graphpaperBounds", () => {
                         const bounds = calculator.graphpaperBounds.mathCoordinates;
-                      
-                        console.log(bounds);
+                        const update = {
+                            left: bounds.left,
+                            right: bounds.right,
+                            bottom: bounds.bottom,
+                            top: bounds.top,
+                        };
+
+                        parent.postMessage({ t: "desmos-graph", d: "update", o: "${
+                            window.origin
+                        }", data: JSON.stringify(update), hash: "${hash}" }, "${window.origin}");
                     });
                 } else {
                     calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
@@ -192,11 +198,18 @@ export class Renderer {
             if (state) {
                 const { args, el, resolve, cacheFile } = state;
 
-                el.empty();
+                if (message.data.d !== "update") {
+                    el.empty();
+                }
 
                 if (message.data.d === "error") {
                     renderError(message.data.data, el, args.potentialErrorCause);
-                    resolve(); // let caller know we are done rendering
+                    resolve();
+                } else if (message.data.d === "update") {
+                    const data: Partial<Fields> = JSON.parse(message.data.data);
+                    args.update(data);
+                    return;
+                    // resolve();
                 } else if (message.data.d === "render") {
                     const { data } = message.data;
 
