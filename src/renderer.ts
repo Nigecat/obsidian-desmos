@@ -169,9 +169,7 @@ export class Renderer {
 
         el.appendChild(iframe);
 
-        return new Promise((resolve) => {
-            this.rendering.set(hash, { args, el, resolve, cacheFile });
-        });
+        return new Promise((resolve) => this.rendering.set(hash, { args, el, resolve, cacheFile }));
     }
 
     private async handler(
