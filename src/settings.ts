@@ -37,7 +37,7 @@ export function DEFAULT_SETTINGS(plugin: Desmos): Settings {
 }
 
 /** Attempt to migrate the given settings object to the current structure */
-export function migrateSettings(plugin: Desmos, settings: any): Settings {
+export function migrateSettings(plugin: Desmos, settings: object): Settings {
     // todo (there is currently only one version of the settings interface)
     return settings as Settings;
 }

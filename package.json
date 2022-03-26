@@ -7,17 +7,22 @@
     "scripts": {
         "build": "rollup --config rollup.config.js --environment BUILD:production",
         "build:dev": "rollup --config rollup.config.js -w",
-        "lint": "tslint -c tslint.json 'src/**/*.ts'"
+        "lint": "eslint src --ext .ts"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^19.0.0",
         "@rollup/plugin-node-resolve": "^13.0.0",
         "@rollup/plugin-typescript": "^8.2.1",
         "@types/node": "^15.12.2",
+        "@typescript-eslint/eslint-plugin": "^5.16.0",
+        "@typescript-eslint/parser": "^5.16.0",
+        "eslint": "^8.12.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-jsdoc": "^38.0.6",
+        "eslint-plugin-prefer-arrow": "^1.2.3",
         "obsidian": "^0.12.5",
         "rollup": "^2.51.2",
         "tslib": "^2.3.0",
-        "tslint": "^6.1.3",
         "typescript": "^4.3.2"
     }
 }

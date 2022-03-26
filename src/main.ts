@@ -5,12 +5,14 @@ import { renderError } from "./error";
 import { DEFAULT_SETTINGS, migrateSettings, Settings, SettingsTab } from "./settings";
 
 export default class Desmos extends Plugin {
-    // @ts-ignore - we load the settings before accessing them, so we can ensure this object always exists
-    settings: Settings;
+    // We load the settings before accessing them, so we can ensure this object always exists
+    settings!: Settings;
+
+    // We create the renderer before registering the codeblock, so we can ensure this object always exists
+    renderer!: Renderer;
+
     /** Helper for in-memory graph caching */
     graphCache: Record<string, string> = {};
-    // @ts-ignore - we create the renderer before registering the codeblock, so we can ensure this object always exists
-    renderer: Renderer;
 
     async onload() {
         await this.loadSettings();
