@@ -169,10 +169,10 @@ export class Dsl {
                         return [key, value.join("=")];
                     })
                     .reduce((settings, [k, value]) => {
-                        const key = k.toLowerCase();
-                        if (FIELD_DEFAULTS.hasOwnProperty(key)) {
+                        const key = k.toLowerCase() as keyof Fields;
+                        if (key in FIELD_DEFAULTS) {
                             // We can use the defaults to determine the type of each field
-                            const fieldValue = (FIELD_DEFAULTS as any)[key];
+                            const fieldValue = FIELD_DEFAULTS[key];
                             const fieldType = typeof fieldValue;
 
                             // Boolean fields default to `true`
@@ -186,13 +186,13 @@ export class Dsl {
                                     if (Number.isNaN(s)) {
                                         throw new SyntaxError(`Field '${key}' must have an integer value`);
                                     }
-                                    (settings as any)[key] = s;
+                                    (settings[key] as number) = s;
                                     break;
                                 }
 
                                 case "boolean": {
                                     if (!value) {
-                                        (settings as any)[key] = true;
+                                        (settings[key] as boolean) = true;
                                     } else {
                                         if (!["true", "false"].includes(value.toLowerCase())) {
                                             throw new SyntaxError(
@@ -200,7 +200,7 @@ export class Dsl {
                                             );
                                         }
 
-                                        (settings as any)[key] = value.toLowerCase() === "true" ? true : false;
+                                        (settings[key] as boolean) = value.toLowerCase() === "true" ? true : false;
                                     }
                                     break;
                                 }
@@ -210,24 +210,6 @@ export class Dsl {
                                         `Got unrecognized field type ${fieldType} with value ${fieldValue}, this is a bug.`
                                     );
                                 }
-
-                                // case "string": {
-                                //     this.assert_notbanned(value, `field value for key: '${key}'`);
-
-                                //     (settings as any)[key] = value;
-
-                                //     break;
-                                // }
-
-                                // case "object": {
-                                //     const val = JSON.parse(value);
-                                //     if (
-                                //         val.constructor === fieldValue.constructor
-                                //     ) {
-                                //         (settings as any)[key] = val;
-                                //     }
-                                //     break;
-                                // }
                             }
                         } else {
                             throw new SyntaxError(`Unrecognised field: ${key}`);
