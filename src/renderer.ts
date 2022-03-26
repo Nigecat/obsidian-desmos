@@ -137,16 +137,19 @@ export class Renderer {
 
                 ${expressions.join("")}
 
-                calculator.observe("expressionAnalysis", () => {
-                    for (const id in calculator.expressionAnalysis) {
-                        const analysis = calculator.expressionAnalysis[id];
-                        if (analysis.isError) {
-                            parent.postMessage({ t: "desmos-graph", d: "error", o: "${
-                                window.origin
-                            }", data: analysis.errorMessage, hash: "${hash}" }, "${window.origin}");
+                // Desmos returns an error if we try to observe the expressions without any defined
+                if (${expressions.length > 0}) {
+                    calculator.observe("expressionAnalysis", () => {
+                        for (const id in calculator.expressionAnalysis) {
+                            const analysis = calculator.expressionAnalysis[id];
+                            if (analysis.isError) {
+                                parent.postMessage({ t: "desmos-graph", d: "error", o: "${
+                                    window.origin
+                                }", data: analysis.errorMessage, hash: "${hash}" }, "${window.origin}");
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
                     document.body.innerHTML = "";
@@ -228,7 +231,9 @@ export class Renderer {
                 this.rendering.delete(message.data.hash);
             } else {
                 // do nothing if graph is not in render list (this should not happen)
-                console.warn(`Got graph not in render list, this is probably a bug - ${this.rendering}`);
+                console.warn(
+                    `Got graph not in render list, this is probably a bug - ${JSON.stringify(this.rendering)}`
+                );
             }
         }
     }
