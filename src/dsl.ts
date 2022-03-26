@@ -80,16 +80,16 @@ export class Dsl {
         // todo there should be a better way of doing this
         const defaultGraphWidth = Math.abs(FIELD_DEFAULTS.left) + Math.abs(FIELD_DEFAULTS.right);
         const defaultGraphHeight = Math.abs(FIELD_DEFAULTS.bottom) + Math.abs(FIELD_DEFAULTS.top);
-        if (fields.left !== undefined && fields.right === undefined && fields.left > FIELD_DEFAULTS.right) {
+        if (fields.left !== undefined && fields.right === undefined && fields.left >= FIELD_DEFAULTS.right) {
             fields.right = fields.left + defaultGraphWidth;
         }
-        if (fields.left === undefined && fields.right !== undefined && fields.right < FIELD_DEFAULTS.left) {
+        if (fields.left === undefined && fields.right !== undefined && fields.right <= FIELD_DEFAULTS.left) {
             fields.left = fields.right - defaultGraphWidth;
         }
-        if (fields.bottom !== undefined && fields.top === undefined && fields.bottom > FIELD_DEFAULTS.top) {
+        if (fields.bottom !== undefined && fields.top === undefined && fields.bottom >= FIELD_DEFAULTS.top) {
             fields.top = fields.bottom + defaultGraphHeight;
         }
-        if (fields.bottom === undefined && fields.top !== undefined && fields.top < FIELD_DEFAULTS.bottom) {
+        if (fields.bottom === undefined && fields.top !== undefined && fields.top <= FIELD_DEFAULTS.bottom) {
             fields.bottom = fields.top - defaultGraphHeight;
         }
 
