@@ -38,24 +38,32 @@ export class Renderer {
         }
     }
 
-    public render(live: boolean, args: Dsl, el: HTMLElement): Promise<void> {
-        return new Promise(async (resolve) => {
-            const plugin = this.plugin;
-            const settings = plugin.settings;
+    public async render(live: boolean, args: Dsl, el: HTMLElement): Promise<void> {
+        const plugin = this.plugin;
+        const settings = plugin.settings;
 
-            const { fields, equations } = args;
-            const hash = await args.hash();
+        const { fields, equations } = args;
+        const hash = await args.hash();
 
-            let cacheFile: string | undefined;
+        let cacheFile: string | undefined;
 
-            // If this graph is in the cache then fetch it
-            if (settings.cache.enabled) {
-                if (settings.cache.location === CacheLocation.Memory && hash in plugin.graphCache) {
-                    const data = plugin.graphCache[hash];
+        // If this graph is in the cache then fetch it
+        if (settings.cache.enabled) {
+            if (settings.cache.location === CacheLocation.Memory && hash in plugin.graphCache) {
+                const data = plugin.graphCache[hash];
+                const img = document.createElement("img");
+                img.src = data;
+                el.appendChild(img);
+                return;
+            } else if (settings.cache.location === CacheLocation.Filesystem && settings.cache.directory) {
+                const adapter = plugin.app.vault.adapter;
+
+                cacheFile = normalizePath(`${settings.cache.directory}/desmos-graph-${hash}.png`);
+                // If this graph is in the cache
+                if (await adapter.exists(cacheFile)) {
                     const img = document.createElement("img");
-                    img.src = data;
+                    img.src = adapter.getResourcePath(cacheFile);
                     el.appendChild(img);
-                    resolve();
                     return;
                 } else if (!live && settings.cache.location === CacheLocation.Filesystem && settings.cache.directory) {
                     const adapter = plugin.app.vault.adapter;
@@ -66,25 +74,25 @@ export class Renderer {
                         const img = document.createElement("img");
                         img.src = adapter.getResourcePath(cacheFile);
                         el.appendChild(img);
-                        resolve();
                         return;
                     }
                 }
             }
+        }
 
-            const expressions = equations.map(
-                (equation) =>
-                    `calculator.setExpression({
+        const expressions = equations.map(
+            (equation) =>
+                `calculator.setExpression({
                     latex: "${equation.equation.replace("\\", "\\\\")}${
-                        // interpolation is safe as we ensured the string did not contain any quotes in the parser
-                        (equation.restriction ?? "")
-                            .replaceAll("{", "\\\\{")
-                            .replaceAll("}", "\\\\}")
-                            .replaceAll("<=", "\\\\leq ")
-                            .replaceAll(">=", "\\\\geq ")
-                            .replaceAll("<", "\\\\le ")
-                            .replaceAll(">", "\\\\ge ")
-                    }",
+                    // interpolation is safe as we ensured the string did not contain any quotes in the parser
+                    (equation.restriction ?? "")
+                        .replaceAll("{", "\\\\{")
+                        .replaceAll("}", "\\\\}")
+                        .replaceAll("<=", "\\\\leq ")
+                        .replaceAll(">=", "\\\\geq ")
+                        .replaceAll("<", "\\\\le ")
+                        .replaceAll(">", "\\\\ge ")
+                }",
 
                     ${(() => {
                         if (equation.style) {
@@ -110,14 +118,14 @@ export class Renderer {
                             : ""
                     }
                 });`
-            );
+        );
 
-            // Because of the electron sandboxing we have to do this inside an iframe (and regardless this is safer),
-            //   otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
-            // Interestingly enough, this script functions perfectly fine fully offline - so we could include a vendored copy if need be
-            //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
-            const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
-            const htmlBody = `
+        // Because of the electron sandboxing we have to do this inside an iframe (and regardless this is safer),
+        //   otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
+        // Interestingly enough, this script functions perfectly fine fully offline - so we could include a vendored copy if need be
+        //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
+        const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
+        const htmlBody = `
             <div id="calculator-${hash}" style="width: ${fields.width}px; height: ${fields.height}px;"></div>
             <script>
                 const options = {
@@ -126,6 +134,7 @@ export class Renderer {
                     lockViewPort: true,
                     zoomButtons: false,
                     trace: false,
+                    showGrid: ${fields.grid},
                 };
 
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator-${hash}"), options);
@@ -138,16 +147,19 @@ export class Renderer {
 
                 ${expressions.join("")}
 
-                calculator.observe("expressionAnalysis", () => {
-                    for (const id in calculator.expressionAnalysis) {
-                        const analysis = calculator.expressionAnalysis[id];
-                        if (analysis.isError) {
-                            parent.postMessage({ t: "desmos-graph", d: "error", o: "${
-                                window.origin
-                            }", data: analysis.errorMessage, hash: "${hash}" }, "${window.origin}");
+                // Desmos returns an error if we try to observe the expressions without any defined
+                if (${expressions.length > 0}) {
+                    calculator.observe("expressionAnalysis", () => {
+                        for (const id in calculator.expressionAnalysis) {
+                            const analysis = calculator.expressionAnalysis[id];
+                            if (analysis.isError) {
+                                parent.postMessage({ t: "desmos-graph", d: "error", o: "${
+                                    window.origin
+                                }", data: analysis.errorMessage, hash: "${hash}" }, "${window.origin}");
+                            }
                         }
-                    }
-                });
+                    });
+                }
 
                 if (${live}) {
                     calculator.observe("graphpaperBounds", () => {
@@ -173,21 +185,20 @@ export class Renderer {
                 }
             </script>
         `;
-            const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
+        const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
 
-            const iframe = document.createElement("iframe");
-            iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
-            iframe.width = fields.width.toString();
-            iframe.height = fields.height.toString();
-            iframe.style.border = "none";
-            iframe.scrolling = "no"; // fixme use a non-depreciated function
-            iframe.srcdoc = htmlSrc;
-            // iframe.style.display = "none"; // fixme hiding the iframe breaks the positioning
+        const iframe = document.createElement("iframe");
+        iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
+        iframe.width = fields.width.toString();
+        iframe.height = fields.height.toString();
+        iframe.style.border = "none";
+        iframe.scrolling = "no"; // fixme use a non-depreciated function
+        iframe.srcdoc = htmlSrc;
+        // iframe.style.display = "none"; // fixme hiding the iframe breaks the positioning
 
-            el.appendChild(iframe);
+        el.appendChild(iframe);
 
-            this.rendering.set(hash, { args, el, live, resolve, cacheFile });
-        });
+        return new Promise((resolve) => this.rendering.set(hash, { args, el, live, resolve, cacheFile }));
     }
 
     private async handler(
@@ -252,7 +263,9 @@ export class Renderer {
                 this.rendering.delete(message.data.hash);
             } else {
                 // do nothing if graph is not in render list (this should not happen)
-                console.warn(`Got graph not in render list, this is probably a bug - ${this.rendering}`);
+                console.warn(
+                    `Got graph not in render list, this is probably a bug - ${JSON.stringify(this.rendering)}`
+                );
             }
         }
     }

@@ -11,7 +11,39 @@ y=\frac{1}{2x}+3
 ```
 
 ```desmos-graph
-lock;
+height=200;
+bottom=-1; left=-4; right=4; top=6;
+---
+y=-x|-3<x<0|black
+y=-x+1|-2<x<1|black
+y=x|0<x<3|black
+y=x-1|1<x<3|black
+y=1|0<x<1|green
+y=-2x+1|green|-2<x<0
+y=2x-1|green|1<x<3
+
+(-3,3)|black
+(3,3)|black
+(-2,3)|black
+(3,2)|black
+(-2,5)|green
+(3,5)|green
+```
+
+```desmos-graph
+left=-3; right=3;
+top=6; bottom=-4;
+---
+y=x^2|x<-1
+y=2|-1<x<1
+y=-x|x>=1
+(-1,1)
+(1,-1)
+(-1,2)|open
+(1,2)|open
+```
+
+```desmos-graph
 ---
 y=\frac{1}{x}
 y=3/2|green

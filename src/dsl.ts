@@ -15,6 +15,7 @@ export interface Fields {
     right: number;
     bottom: number;
     top: number;
+    grid: boolean;
 }
 
 const FIELD_DEFAULTS: Fields = {
@@ -25,6 +26,7 @@ const FIELD_DEFAULTS: Fields = {
     right: 10,
     bottom: -7,
     top: 7,
+    grid: true,
 };
 
 export interface Equation {
@@ -96,6 +98,24 @@ export class Dsl {
         this.ctx = ctx;
         this.target = target;
         this.equations = equations;
+
+        // Dynamically adjust graph boundary if the defaults would cause an invalid graph with the fields supplied by the user
+        // todo there should be a better way of doing this
+        const defaultGraphWidth = Math.abs(FIELD_DEFAULTS.left) + Math.abs(FIELD_DEFAULTS.right);
+        const defaultGraphHeight = Math.abs(FIELD_DEFAULTS.bottom) + Math.abs(FIELD_DEFAULTS.top);
+        if (fields.left !== undefined && fields.right === undefined && fields.left >= FIELD_DEFAULTS.right) {
+            fields.right = fields.left + defaultGraphWidth;
+        }
+        if (fields.left === undefined && fields.right !== undefined && fields.right <= FIELD_DEFAULTS.left) {
+            fields.left = fields.right - defaultGraphWidth;
+        }
+        if (fields.bottom !== undefined && fields.top === undefined && fields.bottom >= FIELD_DEFAULTS.top) {
+            fields.top = fields.bottom + defaultGraphHeight;
+        }
+        if (fields.bottom === undefined && fields.top !== undefined && fields.top <= FIELD_DEFAULTS.bottom) {
+            fields.bottom = fields.top - defaultGraphHeight;
+        }
+
         this.fields = { ...FIELD_DEFAULTS, ...fields };
         this.potentialErrorCause = potentialErrorCause;
         this.update = debounce(this._update.bind(this), UPDATE_TIMEOUT, true);
@@ -197,12 +217,13 @@ export class Dsl {
                         return [key, value.join("=")];
                     })
                     .reduce((settings, [k, value]) => {
-                        const key = k.toLowerCase();
-                        if (FIELD_DEFAULTS.hasOwnProperty(key)) {
+                        const key = k.toLowerCase() as keyof Fields;
+                        if (key in FIELD_DEFAULTS) {
                             // We can use the defaults to determine the type of each field
-                            const fieldValue = (FIELD_DEFAULTS as any)[key];
+                            const fieldValue = FIELD_DEFAULTS[key];
                             const fieldType = typeof fieldValue;
 
+                            // Boolean fields default to `true`
                             if (fieldType !== "boolean" && !value) {
                                 throw new SyntaxError(`Field '${key}' must have a value`);
                             }
@@ -213,7 +234,22 @@ export class Dsl {
                                     if (Number.isNaN(s)) {
                                         throw new SyntaxError(`Field '${key}' must have an integer (or float) value`);
                                     }
-                                    (settings as any)[key] = s;
+                                    (settings[key] as number) = s;
+                                    break;
+                                }
+
+                                case "boolean": {
+                                    if (!value) {
+                                        (settings[key] as boolean) = true;
+                                    } else {
+                                        if (!["true", "false"].includes(value.toLowerCase())) {
+                                            throw new SyntaxError(
+                                                `Field '${key}' requres a boolean value 'true'/'false' (omit a value to default to 'true')`
+                                            );
+                                        }
+
+                                        (settings[key] as boolean) = value.toLowerCase() === "true" ? true : false;
+                                    }
                                     break;
                                 }
 
@@ -231,24 +267,6 @@ export class Dsl {
                                         `Got unrecognized field type ${fieldType} with value ${fieldValue}, this is a bug.`
                                     );
                                 }
-
-                                // case "string": {
-                                //     this.assert_notbanned(value, `field value for key: '${key}'`);
-
-                                //     (settings as any)[key] = value;
-
-                                //     break;
-                                // }
-
-                                // case "object": {
-                                //     const val = JSON.parse(value);
-                                //     if (
-                                //         val.constructor === fieldValue.constructor
-                                //     ) {
-                                //         (settings as any)[key] = val;
-                                //     }
-                                //     break;
-                                // }
                             }
                         } else {
                             throw new SyntaxError(`Unrecognised field: ${key}`);
