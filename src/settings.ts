@@ -81,6 +81,8 @@ export class SettingsTab extends PluginSettingTab {
                 toggle.setValue(this.plugin.settings.live).onChange(async (value) => {
                     this.plugin.settings.live = value;
                     await this.plugin.saveSettings();
+                    // Clear graph cache so the user doesn't need to restart Obsidian for this setting to take effect
+                    this.plugin.graphCache = {};
                 })
             );
 
