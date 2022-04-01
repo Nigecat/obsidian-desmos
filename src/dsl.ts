@@ -164,20 +164,63 @@ export class Dsl {
 
     private async _update(fields: Partial<Fields>): Promise<void> {
         const file = this.ctx.sourcePath;
-        const location = this.ctx.getSectionInfo(this.target);
-        if (file && location) {
-            this.fields = { ...this.fields, ...fields };
+        if (file) {
+            // if (fields.left && this.fields.left !== fields.left) {
+            //     // Update width
+            // }
 
             const path = normalizePath(file);
-            const contents = await this.plugin.app.vault.adapter.read(path);
+            const info = this.ctx.getSectionInfo(this.target);
 
-            const start = contents.indexOf(location.text);
-            const end = start + location.text.length;
-            console.log(location.text);
-            const codeblock = contents.slice(start, end);
+            if (info) {
+                // Extract the content of the codeblock
+                const content = info.text.split(/\r?\n/g).slice(info.lineStart, info.lineEnd);
 
-            console.log(`${start}..${end}`);
-            console.log(contents.slice(start, end));
+                // Remove the first line - this is the start of the codeblock: '```desmos-graph'
+                content.shift();
+
+                // Ensure there is a separator `---`
+                if (!content.includes("---")) {
+                    throw new SyntaxError("TODO (e: no sep)"); // todo
+                }
+
+                // // Find the updated fields and update them
+                // for (const [key, value] of Object.entries(fields)) {
+                //     if (content.contains(`${key}=`)) {
+                //     }
+                // }
+            } else {
+                console.error("unable to fetch codeblock info");
+            }
+
+            // const contents = await this.plugin.app.vault.adapter.read(path);
+            // const location = this.ctx.getSectionInfo(this.target);
+
+            // if (location) {
+
+            //     // console.log(this.ctx);
+
+            //     // const start = contents.indexOf(location.text);
+            //     // const end = start + location.text.length;
+            //     // const codeblock = contents.slice(start, end);
+
+            //     // console.log(start, end, location.text);
+            //     // console.log(codeblock);
+
+            //     // await this.plugin.app.vault.adapter.write(path, contents);
+            // }
+
+            // this.plugin.app.vault.modify( this.plugin.app.vault.getResourcePath);
+
+            // const start = contents.indexOf(location.text);
+            // const end = start + location.text.length;
+            // console.log(location.text);
+            // const codeblock = contents.slice(start, end);
+
+            // console.log(`${start}..${end}`);
+            // console.log(codeblock);
+
+            this.fields = { ...this.fields, ...fields };
 
             // todo
             // console.log(this.fields, file, location);
@@ -250,15 +293,6 @@ export class Dsl {
 
                                         (settings[key] as boolean) = value.toLowerCase() === "true" ? true : false;
                                     }
-                                    break;
-                                }
-
-                                case "boolean": {
-                                    if (value) {
-                                        throw new SyntaxError(`Unexpected value '${value}' for boolean key '${key}'`);
-                                    }
-
-                                    (settings as any)[key] = true;
                                     break;
                                 }
 
