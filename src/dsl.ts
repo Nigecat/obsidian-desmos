@@ -182,7 +182,7 @@ export class Dsl {
 
                             switch (fieldType) {
                                 case "number": {
-                                    const s = parseInt(value, 10);
+                                    const s = parseFloat(value);
                                     if (Number.isNaN(s)) {
                                         throw new SyntaxError(`Field '${key}' must have an integer value`);
                                     }
