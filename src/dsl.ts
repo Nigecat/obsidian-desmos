@@ -95,7 +95,7 @@ export class Dsl {
 
         this.fields = { ...FIELD_DEFAULTS, ...fields };
         this.potentialErrorCause = potentialErrorCause;
-        Dsl.assert_sanity(this.fields);
+        Dsl.assertSanity(this.fields);
     }
 
     /** Get a (hex) SHA-256 hash of this object */
@@ -112,7 +112,7 @@ export class Dsl {
     }
 
     /** Check if the fields are sane, throws a `SyntaxError` if they aren't */
-    private static assert_sanity(fields: Fields) {
+    private static assertSanity(fields: Fields) {
         // Ensure boundaries are complete and in order
         if (fields.left >= fields.right) {
             throw new SyntaxError(
@@ -127,13 +127,13 @@ export class Dsl {
         }
     }
 
-    /** Ensure a string does not contain any of the banned characters (this is mostly a sanity check to prevent vulnerabilities in later interpolation) */
-    private static assert_notbanned(value: string, ctx: string) {
-        const bannedChars = ['"', "'", "`"];
-
-        for (const c of bannedChars) {
-            if (value.includes(c)) {
-                throw new SyntaxError(`Unexpected character ${c} in ${ctx}`);
+    /** Assert if a string is safe to interpolate in a string wrapped by '`' (without any escaping vulnerabilities),
+     *      throws a `SyntaxError` if they aren't.
+     */
+    private static assertSafeToInterpolate(str: string, ctx?: string) {
+        if (str.includes("`")) {
+            if (ctx) {
+                throw new SyntaxError(`Illegal character (\`) found in ${ctx ? ctx.replace("?", str) : "string"}`);
             }
         }
     }
@@ -175,6 +175,9 @@ export class Dsl {
                             // We can use the defaults to determine the type of each field
                             const fieldValue = FIELD_DEFAULTS[key];
                             const fieldType = typeof fieldValue;
+
+                            // Sanity check
+                            Dsl.assertSafeToInterpolate(value, `field '${key}': ?`);
 
                             // Boolean fields default to `true`
                             if (fieldType !== "boolean" && !value) {
@@ -237,12 +240,17 @@ export class Dsl {
 
             // First segment is always the equation
             const equation: Equation = { equation: segments.shift() as unknown as string };
-            this.assert_notbanned(equation.equation, "graph equation");
+
+            // Sanity check
+            Dsl.assertSafeToInterpolate(equation.equation, `equation: ?`);
 
             // The rest of the segments can either be the restriction, style, or color
             //  whilst we recommend putting the restriction first, we accept these in any order.
             for (const segment of segments) {
                 const segmentUpperCase = segment.toUpperCase();
+
+                // Sanity check
+                Dsl.assertSafeToInterpolate(segment, `segment: ?`);
 
                 // If this is a valid style constant
                 if (Object.values(EquationStyle).includes(segmentUpperCase as EquationStyle)) {
@@ -273,8 +281,6 @@ export class Dsl {
 
                 // Otherwise, assume it is a graph restriction
                 else {
-                    this.assert_notbanned(segment, "graph configuration");
-
                     if ((segment as string).includes("\\")) {
                         // If the restriction included a `\` (the LaTeX control character) then the user may have tried to use the LaTeX syntax in the graph restriction (e.g `\frac{1}{2}`)
                         //  Desmos does not allow this but returns a fairly archaic error - "A piecewise expression must have at least one condition."

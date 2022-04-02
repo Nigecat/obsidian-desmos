@@ -49,3 +49,8 @@ y=\frac{1}{x}
 y=3/2|green
 y=2x
 ```
+
+```desmos-graph
+f(x)=x^3+x^2+x
+f'(x)|f'(x)>1
+```
