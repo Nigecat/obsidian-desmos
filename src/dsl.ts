@@ -26,6 +26,7 @@ export interface Equation {
     restriction?: string;
     style?: EquationStyle;
     color?: EquationColor | HexColor;
+    hidden?: boolean;
 }
 
 export enum EquationStyle {
@@ -252,8 +253,13 @@ export class Dsl {
                 // Sanity check
                 Dsl.assertSafeToInterpolate(segment, `segment: ?`);
 
+                // If this is a `hidden` tag
+                if (segmentUpperCase === "HIDDEN") {
+                    equation.hidden = true;
+                }
+
                 // If this is a valid style constant
-                if (Object.values(EquationStyle).includes(segmentUpperCase as EquationStyle)) {
+                else if (Object.values(EquationStyle).includes(segmentUpperCase as EquationStyle)) {
                     if (!equation.style) {
                         equation.style = segmentUpperCase as EquationStyle;
                     } else {
