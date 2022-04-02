@@ -166,7 +166,8 @@ export class Dsl {
                     // Split each field on the first equals sign to create the key=value pair
                     .map((setting) => {
                         const [key, ...value] = setting.split("=");
-                        return [key, value.join("=")];
+                        // Trim each field, this allows the user to put spaces around the key of a value if they wish
+                        return [key.trim(), value.join("=").trim()];
                     })
                     .reduce((settings, [k, value]) => {
                         const key = k.toLowerCase() as keyof Fields;
