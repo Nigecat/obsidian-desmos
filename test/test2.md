@@ -1,0 +1,4 @@
+```desmos-graph
+f(x)=x^3+x^2+x
+f'(x)|f'(x)>1
+```

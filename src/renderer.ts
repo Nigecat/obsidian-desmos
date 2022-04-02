@@ -70,7 +70,7 @@ export class Renderer {
         const expressions = equations.map(
             (equation) =>
                 `calculator.setExpression({
-                    latex: "${equation.equation.replace("\\", "\\\\")}${
+                    latex: \`${equation.equation.replace("\\", "\\\\")}${
                     // interpolation is safe as we ensured the string did not contain any quotes in the parser
                     (equation.restriction ?? "")
                         .replaceAll("{", "\\\\{")
@@ -79,7 +79,7 @@ export class Renderer {
                         .replaceAll(">=", "\\\\geq ")
                         .replaceAll("<", "\\\\le ")
                         .replaceAll(">", "\\\\ge ")
-                }",
+                }\`,
 
                     ${(() => {
                         if (equation.style) {
@@ -101,7 +101,7 @@ export class Renderer {
 
                     ${
                         equation.color
-                            ? `color: "${equation.color}",` // interpolation is safe as we ensured the string was alphanumeric in the parser
+                            ? `color: \`${equation.color}\`,` // interpolation is safe as we ensured the string was alphanumeric in the parser
                             : ""
                     }
                 });`
