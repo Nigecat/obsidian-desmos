@@ -70,7 +70,7 @@ export class Renderer {
         const expressions = equations.map(
             (equation) =>
                 `calculator.setExpression({
-                    latex: \`${equation.equation.replace("\\", "\\\\")}${
+                    latex: \`${equation.equation.replace(/\\/g, "\\\\")}${
                     // interpolation is safe as we ensured the string did not contain any quotes in the parser
                     (equation.restriction ?? "")
                         .replaceAll("{", "\\\\{")
