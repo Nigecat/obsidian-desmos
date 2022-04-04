@@ -55,7 +55,7 @@ var EquationColor;
     EquationColor["YELLOW"] = "#ffff00";
     EquationColor["MAGENTA"] = "#ff00ff";
     EquationColor["CYAN"] = "#00ffff";
-    EquationColor["PURPLE"] = "#cc8899";
+    EquationColor["PURPLE"] = "#6042a6";
     EquationColor["ORANGE"] = "#ffa500";
     EquationColor["BLACK"] = "#000000";
     EquationColor["WHITE"] = "#ffffff";
