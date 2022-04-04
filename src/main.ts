@@ -1,4 +1,4 @@
-import { Dsl } from "./dsl";
+import { Graph } from "./graph";
 import { Plugin } from "obsidian";
 import { Renderer } from "./renderer";
 import { renderError } from "./error";
@@ -23,8 +23,8 @@ export default class Desmos extends Plugin {
 
         this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
             try {
-                const args = Dsl.parse(source);
-                await this.renderer.render(args, el);
+                const graph = Graph.parse(source);
+                await this.renderer.render(graph, el);
             } catch (err) {
                 if (err instanceof Error) {
                     renderError(err.message, el);
