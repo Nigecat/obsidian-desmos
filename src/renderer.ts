@@ -1,8 +1,8 @@
 import Desmos from "./main";
 import { renderError } from "./error";
 import { CacheLocation } from "./settings";
-import { Graph, EquationStyle } from "./graph";
 import { normalizePath, Notice } from "obsidian";
+import { Graph, LineStyle, PointStyle } from "./graph";
 
 interface RenderData {
     graph: Graph;
@@ -72,7 +72,7 @@ export class Renderer {
             (equation) =>
                 `calculator.setExpression({
                     latex: \`${equation.equation.replace(/\\/g, "\\\\")}${
-                    // interpolation is safe as we ensured the string did not contain any quotes in the parser
+                    // interpolation is safe as we ensured the string did not contain any quotes (`) in the parser
                     (equation.restriction ?? "")
                         .replaceAll("{", "\\\\{")
                         .replaceAll("}", "\\\\}")
@@ -83,29 +83,20 @@ export class Renderer {
                 }\`,
 
                     ${(() => {
-                        // todo
-                        // if (equation.style) {
-                        //     if (
-                        //         [EquationStyle.Solid, EquationStyle.Dashed, EquationStyle.Dotted].contains(
-                        //             equation.style
-                        //         )
-                        //     ) {
-                        //         return `lineStyle: Desmos.Styles.${equation.style},`;
-                        //     } else if (
-                        //         [EquationStyle.Point, EquationStyle.Open, EquationStyle.Cross].contains(equation.style)
-                        //     ) {
-                        //         return `pointStyle: Desmos.Styles.${equation.style},`;
-                        //     }
-                        // }
+                        if (equation.style) {
+                            if (equation.style in Object.values(LineStyle)) {
+                                return `lineStyle: Desmos.Styles.${equation.style}`;
+                            } else if (equation.style in Object.values(PointStyle)) {
+                                return `pointStyle: Desmos.Styles.${equation.style}`;
+                            } else {
+                                // todo this is an bug
+                            }
+                        }
 
                         return "";
                     })()}
 
-                    ${
-                        equation.color
-                            ? `color: \`${equation.color}\`,` // interpolation is safe as we ensured the string was alphanumeric in the parser
-                            : ""
-                    }
+                    ${equation.color ? `color: \`${equation.color}\`,` : ""}
                 });`
         );
 
@@ -188,7 +179,10 @@ export class Renderer {
 
                 if (message.data.d === "error") {
                     // todo render potentialErrorHints
-                    // renderError(message.data.data, el, graphSettings.potentialErrorHints);
+                    if (graph.potentialErrorHints) {
+                        console.warn(graph.potentialErrorHints);
+                        // renderError(message.data.data, el, graphSettings.potentialErrorHints);
+                    }
                     resolve(); // let caller know we are done rendering
                 } else if (message.data.d === "render") {
                     const { data } = message.data;

@@ -18,11 +18,11 @@ export interface GraphSettings {
 export interface Equation {
     equation: string;
     restriction?: string;
-    style?: EquationStyle | PointStyle;
+    style?: LineStyle | PointStyle;
     color?: ColorConstant | HexColor;
 }
 
-export enum EquationStyle {
+export enum LineStyle {
     SOLID = "SOLID",
     DASHED = "DASHED",
     DOTTED = "DOTTED",
@@ -32,11 +32,6 @@ export enum PointStyle {
     POINT = "POINT",
     OPEN = "OPEN",
     CROSS = "CROSS",
-}
-
-export enum DegreeMode {
-    RADIANS = "radians",
-    DEGREES = "degrees",
 }
 
 export type HexColor = string;
