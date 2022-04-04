@@ -121,6 +121,19 @@ For example, if we wanted to create a straight green dashed line of `x=2` with a
   ![equation-control](https://user-images.githubusercontent.com/48661288/158956490-9d4eaf54-4ae6-4b1c-9f49-18e3eb456650.png)  
 </details>
 
+Additionally, individual equations can be hidden with the `hidden` flag, this can be useful when graphing things such as derivatives:
+````
+    ```desmos-graph
+        f(x)=x^2|hidden
+        f'(x)
+    ```
+````
+<details>
+  <summary>View Graph</summary>
+
+  ![hidden](https://user-images.githubusercontent.com/48661288/161505291-9a28618a-d14e-48ec-9d5e-14b7235db733.png)
+</details>
+
 For the sake of readability, we recommend using the following order (where applicable): `equation|restriction|style|color`
 
 ### Offline Usage

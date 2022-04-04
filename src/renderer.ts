@@ -81,6 +81,8 @@ export class Renderer {
                         .replaceAll(">", "\\\\ge ")
                 }\`,
 
+                    hidden: ${equation.hidden ?? false},
+
                     ${(() => {
                         if (equation.style) {
                             if (
@@ -207,14 +209,12 @@ export class Renderer {
                                     const buffer = Buffer.from(data.replace(/^data:image\/png;base64,/, ""), "base64");
                                     await adapter.writeBinary(cacheFile, buffer);
                                 } else {
-                                    // tslint:disable-next-line:no-unused-expression
                                     new Notice(
                                         `desmos-graph: target cache directory '${settings.cache.directory}' does not exist, skipping cache`,
                                         10000
                                     );
                                 }
                             } else {
-                                // tslint:disable-next-line:no-unused-expression
                                 new Notice(
                                     `desmos-graph: filesystem caching enabled but no cache directory set, skipping cache`,
                                     10000
