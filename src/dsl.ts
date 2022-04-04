@@ -46,7 +46,7 @@ export enum EquationColor {
     MAGENTA = "#ff00ff",
     CYAN = "#00ffff",
 
-    PURPLE = "#cc8899",
+    PURPLE = "#6042a6",
     ORANGE = "#ffa500",
     BLACK = "#000000",
     WHITE = "#ffffff",
