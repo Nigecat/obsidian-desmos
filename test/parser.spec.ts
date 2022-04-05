@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { Dsl } from "../src/dsl";
 import { describe, it } from "mocha";
+import { Dsl, EquationColor } from "../src/dsl";
 
 const parse = (source: string) => Dsl.parse(source);
 const source = (args?: string[], equations?: string[]) => `
@@ -20,6 +20,46 @@ describe("parser", () => {
                 { equation: "y=x" },
                 { equation: "y=2x" },
             ]);
+        });
+
+        describe("arguments", () => {
+            it("hidden", () => {
+                expect(parse(source([], ["y=x"])).equations[0].hidden).to.equal(undefined);
+                expect(parse(source([], ["y=x|hidden"])).equations[0].hidden).to.equal(true);
+            });
+
+            describe("color", () => {
+                it("hex", () => {
+                    expect(parse(source([], ["y=x|#0ff"])).equations[0].color).to.equal("#0ff");
+                    expect(parse(source([], ["y=x|#87ceeb"])).equations[0].color).to.equal("#87ceeb");
+                });
+
+                it("constant", () => {
+                    // Object.entries(EquationColor).forEach(([color, value]) =>
+                    //     expect(parse(source([], [`y=x|${color}`])).equations[0].color).to.equal(value)
+                    // );
+                });
+            });
+
+            describe("style", () => {
+                it("line", () => {
+                    // todo
+                });
+
+                it("point", () => {
+                    // todo
+                });
+            });
+
+            describe("restrictions", () => {
+                it("single restriction", () => {
+                    // todo
+                });
+
+                it("multiple restrictionss", () => {
+                    // todo
+                });
+            });
         });
     });
 
