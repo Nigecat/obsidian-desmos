@@ -69,8 +69,8 @@ export class Renderer {
             }
         }
 
+        // Parse equations into a series of Desmos expressions
         const expressions: string[] = [];
-
         for (const equation of equations) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const expression: any = {};
@@ -82,10 +82,10 @@ export class Renderer {
                             // Escape chars
                             .replaceAll("{", String.raw`\{`)
                             .replaceAll("}", String.raw`\}`)
-                            .replaceAll("<=", String.raw`\leq`)
-                            .replaceAll(">=", String.raw`\geq`)
-                            .replaceAll("<", String.raw`\le`)
-                            .replaceAll(">", String.raw`\ge`)
+                            .replaceAll("<=", String.raw`\leq `)
+                            .replaceAll(">=", String.raw`\geq `)
+                            .replaceAll("<", String.raw`\le `)
+                            .replaceAll(">", String.raw`\ge `)
                     )
                     .join("");
 

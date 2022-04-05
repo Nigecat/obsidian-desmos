@@ -99,7 +99,7 @@ export class Graph {
             settings.bottom = settings.top - DEFAULT_GRAPH_HEIGHT;
         }
 
-        this.settings = { ...settings, ...DEFAULT_GRAPH_SETTINGS };
+        this.settings = { ...DEFAULT_GRAPH_SETTINGS, ...settings };
 
         // Ensure boundaries are complete and in order
         if (this.settings.left >= this.settings.right) {
@@ -154,7 +154,9 @@ export class Graph {
                 if (!equation.color) {
                     equation.color = color;
                 } else {
-                    throw new SyntaxError(`Duplicate color identifiers detected: ${equation.color}, ${segment}`);
+                    throw new SyntaxError(
+                        `Duplicate color identifiers detected, each equation may only contain a single color code.`
+                    );
                 }
                 continue;
             }
@@ -199,7 +201,7 @@ export class Graph {
             .map((setting) => setting.split("="))
             .forEach((setting) => {
                 if (setting.length > 2) {
-                    throw new SyntaxError("Too many segments"); // todo
+                    throw new SyntaxError("Too many segments, there must be at most a single '---'");
                 }
 
                 const key = setting[0].trim() as keyof GraphSettings;
