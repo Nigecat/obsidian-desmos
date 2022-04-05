@@ -1,4 +1,5 @@
 import Desmos from "./main";
+import { ucast } from "./utils";
 import { renderError } from "./error";
 import { CacheLocation } from "./settings";
 import { normalizePath, Notice } from "obsidian";
@@ -68,37 +69,47 @@ export class Renderer {
             }
         }
 
-        const expressions = equations.map(
-            (equation) =>
-                `calculator.setExpression({
-                    latex: \`${equation.equation.replace(/\\/g, "\\\\")}${
-                    // interpolation is safe as we ensured the string did not contain any quotes (`) in the parser
-                    (equation.restriction ?? "")
-                        .replaceAll("{", "\\\\{")
-                        .replaceAll("}", "\\\\}")
-                        .replaceAll("<=", "\\\\leq ")
-                        .replaceAll(">=", "\\\\geq ")
-                        .replaceAll("<", "\\\\le ")
-                        .replaceAll(">", "\\\\ge ")
-                }\`,
+        const expressions: string[] = [];
 
-                    ${(() => {
-                        if (equation.style) {
-                            if (equation.style in Object.values(LineStyle)) {
-                                return `lineStyle: Desmos.Styles.${equation.style}`;
-                            } else if (equation.style in Object.values(PointStyle)) {
-                                return `pointStyle: Desmos.Styles.${equation.style}`;
-                            } else {
-                                // todo this is an bug
-                            }
-                        }
+        for (const equation of equations) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const expression: any = {};
 
-                        return "";
-                    })()}
+            if (equation.restrictions) {
+                const restriction = equation.restrictions
+                    .map((restriction) =>
+                        `{${restriction}}`
+                            // Escape chars
+                            .replaceAll("{", String.raw`\{`)
+                            .replaceAll("}", String.raw`\}`)
+                            .replaceAll("<=", String.raw`\leq`)
+                            .replaceAll(">=", String.raw`\geq`)
+                            .replaceAll("<", String.raw`\le`)
+                            .replaceAll(">", String.raw`\ge`)
+                    )
+                    .join("");
 
-                    ${equation.color ? `color: \`${equation.color}\`,` : ""}
-                });`
-        );
+                expression.latex = `${equation.equation}${restriction}`;
+            } else {
+                expression.latex = equation.equation;
+            }
+
+            if (equation.color) {
+                expression.color = equation.color;
+            }
+
+            if (equation.style) {
+                if (Object.values(LineStyle).includes(ucast(equation.style))) {
+                    expression.lineStyle = equation.style;
+                } else if (Object.values(PointStyle).includes(ucast(equation.style))) {
+                    expression.pointStyle = equation.style;
+                }
+            }
+
+            // Calling JSON.stringify twice allows us to escape the strings as well,
+            //  meaning we can embed it directly into the calculator to undo the first parse without parsing
+            expressions.push(`calculator.setExpression(JSON.parse(${JSON.stringify(JSON.stringify(expression))}));`);
+        }
 
         // Because of the electron sandboxing we have to do this inside an iframe (and regardless this is safer),
         //   otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
@@ -127,7 +138,7 @@ export class Renderer {
                     bottom: ${graphSettings.bottom},
                 });
 
-                ${expressions.join("")}
+                ${expressions.join("\n")}
 
                 // Desmos returns an error if we try to observe the expressions without any defined
                 if (${expressions.length > 0}) {
@@ -178,10 +189,8 @@ export class Renderer {
                 el.empty();
 
                 if (message.data.d === "error") {
-                    // todo render potentialErrorHints
-                    if (graph.potentialErrorHints) {
-                        console.warn(graph.potentialErrorHints);
-                        // renderError(message.data.data, el, graphSettings.potentialErrorHints);
+                    if (graph.potentialErrorHint) {
+                        renderError(message.data.data, el, graph.potentialErrorHint.view);
                     }
                     resolve(); // let caller know we are done rendering
                 } else if (message.data.d === "render") {

@@ -1,3 +1,4 @@
+import { ucast } from "../utils";
 import { calculateHash, Hash } from "../hash";
 import { GraphSettings, Equation, HexColor, ColorConstant, LineStyle, PointStyle } from "./interface";
 
@@ -14,6 +15,10 @@ const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
     grid: true,
 };
 
+const DEFAULT_GRAPH_WIDTH = Math.abs(DEFAULT_GRAPH_SETTINGS.left) + Math.abs(DEFAULT_GRAPH_SETTINGS.right);
+
+const DEFAULT_GRAPH_HEIGHT = Math.abs(DEFAULT_GRAPH_SETTINGS.bottom) + Math.abs(DEFAULT_GRAPH_SETTINGS.top);
+
 export interface PotentialErrorHint {
     view: HTMLSpanElement;
 }
@@ -23,18 +28,18 @@ interface ParseResult<T> {
     hint?: PotentialErrorHint;
 }
 
-function parseStringToEnum<V, T extends { [key: string]: V }>(obj: T, key: string): ParseResult<V> | null {
-    // todo
-    return null;
+function parseStringToEnum<V, T extends { [key: string]: V }>(obj: T, key: string): V | null {
+    const objKey = Object.keys(obj).find((k) => k.toUpperCase() === key.toUpperCase());
+    return objKey ? obj[objKey] : null;
 }
 
-function parseColor(value: string): ParseResult<ColorConstant> | ParseResult<HexColor> | null {
+function parseColor(value: string): ColorConstant | HexColor | null {
     // If the value is a valid hex colour
     if (value.startsWith("#")) {
         value = value.slice(1);
         // Ensure the rest of the value is a valid alphanumeric string
         if (/^[0-9a-zA-Z]+$/.test(value)) {
-            return { data: value as HexColor };
+            return value as HexColor;
         }
     }
 
@@ -49,23 +54,137 @@ export class Graph {
     public readonly settings: GraphSettings;
 
     /**  Supplementary error information if the source if valid but Desmos returns an error */
-    public readonly potentialErrorHints?: PotentialErrorHint[];
+    public readonly potentialErrorHint?: PotentialErrorHint;
 
-    private constructor(
+    public constructor(
         equations: Equation[],
         settings: Partial<GraphSettings>,
-        potentialErrorHints?: PotentialErrorHint[]
+        potentialErrorHint?: PotentialErrorHint
     ) {
         this.equations = equations;
-        this.potentialErrorHints = potentialErrorHints;
+        this.potentialErrorHint = potentialErrorHint;
 
-        // todo apply defaults
-        this.settings = settings as unknown as GraphSettings;
+        // Check graph is within maximum size
+        if ((settings.width && settings.width > MAX_SIZE) || (settings.height && settings.height > MAX_SIZE)) {
+            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
+        }
+
+        // Dynamically adjust graph boundary if the defaults would cause an invalid graph with the settings supplied by the user
+        if (
+            settings.left !== undefined &&
+            settings.right === undefined &&
+            settings.left >= DEFAULT_GRAPH_SETTINGS.right
+        ) {
+            settings.right = settings.left + DEFAULT_GRAPH_WIDTH;
+        }
+        if (
+            settings.left === undefined &&
+            settings.right !== undefined &&
+            settings.right <= DEFAULT_GRAPH_SETTINGS.left
+        ) {
+            settings.left = settings.right - DEFAULT_GRAPH_WIDTH;
+        }
+        if (
+            settings.bottom !== undefined &&
+            settings.top === undefined &&
+            settings.bottom >= DEFAULT_GRAPH_SETTINGS.top
+        ) {
+            settings.top = settings.bottom + DEFAULT_GRAPH_HEIGHT;
+        }
+        if (
+            settings.bottom === undefined &&
+            settings.top !== undefined &&
+            settings.top <= DEFAULT_GRAPH_SETTINGS.bottom
+        ) {
+            settings.bottom = settings.top - DEFAULT_GRAPH_HEIGHT;
+        }
+
+        this.settings = { ...settings, ...DEFAULT_GRAPH_SETTINGS };
+
+        // Ensure boundaries are complete and in order
+        if (this.settings.left >= this.settings.right) {
+            throw new SyntaxError(
+                `Right boundary (${this.settings.right}) must be greater than left boundary (${this.settings.left})`
+            );
+        }
+        if (this.settings.bottom >= this.settings.top) {
+            throw new SyntaxError(`
+                Top boundary (${this.settings.top}) must be greater than bottom boundary (${this.settings.bottom})
+            `);
+        }
     }
 
-    private static parseEquation(equation: string): ParseResult<Equation> {
-        // todo
-        return { data: null as unknown as Equation };
+    private static parseEquation(eq: string): ParseResult<Equation> {
+        let hint;
+
+        const segments = eq
+            .split("|")
+            .map((segment) => segment.trim())
+            .filter((segment) => segment !== "");
+
+        // First segment is always the equation
+        const equation: Equation = { equation: ucast(segments.shift()) };
+
+        // The rest of the segments can either be the restriction, style, or color
+        //  whilst we recommend putting the restriction first, we accept these in any order.
+        for (const segment of segments) {
+            const segmentUpperCase = segment.toUpperCase();
+
+            // If this is a `hidden` tag
+            if (segmentUpperCase === "HIDDEN") {
+                equation.hidden = true;
+                continue;
+            }
+
+            // If this is a valid style constant
+            const style: LineStyle | PointStyle | null =
+                parseStringToEnum(LineStyle, segmentUpperCase) ?? parseStringToEnum(PointStyle, segmentUpperCase);
+            if (style) {
+                if (!equation.style) {
+                    equation.style = style;
+                } else {
+                    throw new SyntaxError(`Duplicate style identifiers detected: ${equation.style}, ${segment}`);
+                }
+                continue;
+            }
+
+            // If this is a valid color constant or hex code
+            const color = parseColor(segment);
+            if (color) {
+                if (!equation.color) {
+                    equation.color = color;
+                } else {
+                    throw new SyntaxError(`Duplicate color identifiers detected: ${equation.color}, ${segment}`);
+                }
+                continue;
+            }
+
+            // If none of the above, assume it is a graph restriction
+            if (segment.includes("\\")) {
+                // If the restriction included a `\` (the LaTeX control character) then the user may have tried to use the LaTeX syntax in the graph restriction (e.g `\frac{1}{2}`)
+                //  Desmos does not allow this but returns a fairly archaic error - "A piecewise expression must have at least one condition."
+                const view = document.createElement("span");
+                const pre = document.createElement("span");
+                pre.innerHTML = "You may have tried to use the LaTeX syntax in the graph restriction (";
+                const inner = document.createElement("code");
+                inner.innerText = segment;
+                const post = document.createElement("span");
+                post.innerHTML =
+                    "), please use some sort of an alternative (e.g <code>\\frac{1}{2}</code> => <code>1/2</code>) as this is not supported by Desmos.";
+                view.appendChild(pre);
+                view.appendChild(inner);
+                view.appendChild(post);
+                hint = { view };
+            }
+
+            if (!equation.restrictions) {
+                equation.restrictions = [];
+            }
+
+            equation.restrictions.push(segment);
+        }
+
+        return { data: equation, hint };
     }
 
     private static parseSettings(settings: string): Partial<GraphSettings> {
@@ -74,7 +193,8 @@ export class Graph {
         // Settings may be separated by either a newline or semicolon
         settings
             .split(/[;\n]/g)
-            .filter((setting) => setting.trim() !== "")
+            .map((setting) => setting.trim())
+            .filter((setting) => setting !== "")
             // Extract key-value pairs by splitting on the `=` in each property
             .map((setting) => setting.split("="))
             .forEach((setting) => {
@@ -83,7 +203,7 @@ export class Graph {
                 }
 
                 const key = setting[0].trim() as keyof GraphSettings;
-                const value = setting.length > 1 ? settings[1].trim() : undefined;
+                const value = setting.length > 1 ? setting[1].trim() : undefined;
                 const expectedType = typeof DEFAULT_GRAPH_SETTINGS[key];
 
                 if (key in DEFAULT_GRAPH_SETTINGS) {
@@ -122,7 +242,6 @@ export class Graph {
                             throw new SyntaxError(
                                 `Got unrecognized field type ${key} with value ${value}, this is a bug.`
                             );
-                            break;
                         }
                     }
                 } else {
@@ -134,11 +253,11 @@ export class Graph {
     }
 
     public static parse(source: string): Graph {
+        let potentialErrorHint;
         const split = source.split("---");
-        const potentialErrorHints: PotentialErrorHint[] = [];
 
         if (split.length > 2) {
-            throw new SyntaxError("Too many graph segments"); // todo
+            throw new SyntaxError("Too many graph segments"); // todo - write meaninful error message
         }
 
         // Each (non-blank) line of the equation source contains an equation,
@@ -149,7 +268,7 @@ export class Graph {
             .map(Graph.parseEquation)
             .map((result) => {
                 if (result.hint) {
-                    potentialErrorHints.push(result.hint);
+                    potentialErrorHint = result.hint;
                 }
                 return result.data;
             });
@@ -157,7 +276,7 @@ export class Graph {
         // If there is more than one segment then the first one will contain the settings
         const settings = split.length > 1 ? Graph.parseSettings(split[0]) : {};
 
-        return new Graph(equations, settings, potentialErrorHints);
+        return new Graph(equations, settings, potentialErrorHint);
     }
 
     public async hash(): Promise<Hash> {

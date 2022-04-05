@@ -17,36 +17,37 @@ export interface GraphSettings {
 
 export interface Equation {
     equation: string;
-    restriction?: string;
+    restrictions?: string[];
     style?: LineStyle | PointStyle;
     color?: ColorConstant | HexColor;
+    hidden?: boolean;
 }
 
 export enum LineStyle {
-    SOLID = "SOLID",
-    DASHED = "DASHED",
-    DOTTED = "DOTTED",
+    Solid = "SOLID",
+    Dashed = "DASHED",
+    Dotted = "DOTTED",
 }
 
 export enum PointStyle {
-    POINT = "POINT",
-    OPEN = "OPEN",
-    CROSS = "CROSS",
+    Point = "POINT",
+    Open = "OPEN",
+    Cross = "CROSS",
 }
 
 export type HexColor = string;
 
 export enum ColorConstant {
-    RED = "#ff0000",
-    GREEN = "#00ff00",
-    BLUE = "#0000ff",
+    Red = "#ff0000",
+    Green = "#00ff00",
+    Blue = "#0000ff",
 
-    YELLOW = "#ffff00",
-    MAGENTA = "#ff00ff",
-    CYAN = "#00ffff",
+    Yellow = "#ffff00",
+    Magenta = "#ff00ff",
+    Cyan = "#00ffff",
 
-    PURPLE = "#cc8899",
-    ORANGE = "#ffa500",
-    BLACK = "#000000",
-    WHITE = "#ffffff",
+    Purple = "#cc8899",
+    Orange = "#ffa500",
+    Black = "#000000",
+    White = "#ffffff",
 }
