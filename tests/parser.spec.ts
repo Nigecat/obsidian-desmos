@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { describe, it } from "mocha";
-import { Dsl, EquationColor } from "../src/dsl";
+import { Dsl, EquationColor, EquationStyle } from "../src/dsl";
 
 const parse = (source: string) => Dsl.parse(source);
 const source = (args?: string[], equations?: string[]) => `
@@ -24,7 +24,6 @@ describe("parser", () => {
 
         describe("arguments", () => {
             it("hidden", () => {
-                expect(parse(source([], ["y=x"])).equations[0].hidden).to.equal(undefined);
                 expect(parse(source([], ["y=x|hidden"])).equations[0].hidden).to.equal(true);
             });
 
@@ -35,29 +34,33 @@ describe("parser", () => {
                 });
 
                 it("constant", () => {
-                    // Object.entries(EquationColor).forEach(([color, value]) =>
-                    //     expect(parse(source([], [`y=x|${color}`])).equations[0].color).to.equal(value)
-                    // );
+                    expect(parse(source([], ["y=x|red"])).equations[0].color).to.equal(EquationColor.RED);
+                    expect(parse(source([], ["y=x|green"])).equations[0].color).to.equal(EquationColor.GREEN);
+                    expect(parse(source([], ["y=x|blue"])).equations[0].color).to.equal(EquationColor.BLUE);
                 });
             });
 
             describe("style", () => {
                 it("line", () => {
-                    // todo
+                    expect(parse(source([], ["y=x|solid"])).equations[0].style).to.equal(EquationStyle.Solid);
+                    expect(parse(source([], ["y=x|dashed"])).equations[0].style).to.equal(EquationStyle.Dashed);
+                    expect(parse(source([], ["y=x|dotted"])).equations[0].style).to.equal(EquationStyle.Dotted);
                 });
 
                 it("point", () => {
-                    // todo
+                    expect(parse(source([], ["(0,0)|point"])).equations[0].style).to.equal(EquationStyle.Point);
+                    expect(parse(source([], ["(0,0)|open"])).equations[0].style).to.equal(EquationStyle.Open);
+                    expect(parse(source([], ["(0,0)|cross"])).equations[0].style).to.equal(EquationStyle.Cross);
                 });
             });
 
             describe("restrictions", () => {
                 it("single restriction", () => {
-                    // todo
+                    expect(parse(source([], ["y=x|x>0"])).equations[0].restriction).to.equal("{x>0}");
                 });
 
                 it("multiple restrictionss", () => {
-                    // todo
+                    expect(parse(source([], ["y=x|x>0|y>0"])).equations[0].restriction).to.equal("{x>0}{y>0}");
                 });
             });
         });
