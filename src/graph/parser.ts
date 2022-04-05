@@ -201,7 +201,9 @@ export class Graph {
             .map((setting) => setting.split("="))
             .forEach((setting) => {
                 if (setting.length > 2) {
-                    throw new SyntaxError("Too many segments, there must be at most a single '---'");
+                    throw new SyntaxError(
+                        `Too many segments, eaching setting must only contain a maximum of one '=' sign`
+                    );
                 }
 
                 const key = setting[0].trim() as keyof GraphSettings;

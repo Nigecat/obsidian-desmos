@@ -107,7 +107,7 @@ export class Renderer {
             }
 
             // Calling JSON.stringify twice allows us to escape the strings as well,
-            //  meaning we can embed it directly into the calculator to undo the first parse without parsing
+            //  meaning we can embed it directly into the calculator to undo the first stringification without parsing
             expressions.push(`calculator.setExpression(JSON.parse(${JSON.stringify(JSON.stringify(expression))}));`);
         }
 
