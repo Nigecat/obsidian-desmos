@@ -64,44 +64,18 @@ export class Graph {
         this.equations = equations;
         this.potentialErrorHint = potentialErrorHint;
 
+        // Adjust bounds (if needed)
+        Graph.adjustBounds(settings);
+
         // Check graph is within maximum size
         if ((settings.width && settings.width > MAX_SIZE) || (settings.height && settings.height > MAX_SIZE)) {
             throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
         }
 
-        // Dynamically adjust graph boundary if the defaults would cause an invalid graph with the settings supplied by the user
-        if (
-            settings.left !== undefined &&
-            settings.right === undefined &&
-            settings.left >= DEFAULT_GRAPH_SETTINGS.right
-        ) {
-            settings.right = settings.left + DEFAULT_GRAPH_WIDTH;
-        }
-        if (
-            settings.left === undefined &&
-            settings.right !== undefined &&
-            settings.right <= DEFAULT_GRAPH_SETTINGS.left
-        ) {
-            settings.left = settings.right - DEFAULT_GRAPH_WIDTH;
-        }
-        if (
-            settings.bottom !== undefined &&
-            settings.top === undefined &&
-            settings.bottom >= DEFAULT_GRAPH_SETTINGS.top
-        ) {
-            settings.top = settings.bottom + DEFAULT_GRAPH_HEIGHT;
-        }
-        if (
-            settings.bottom === undefined &&
-            settings.top !== undefined &&
-            settings.top <= DEFAULT_GRAPH_SETTINGS.bottom
-        ) {
-            settings.bottom = settings.top - DEFAULT_GRAPH_HEIGHT;
-        }
-
+        // Apply defaults
         this.settings = { ...DEFAULT_GRAPH_SETTINGS, ...settings };
 
-        // Ensure boundaries are complete and in order
+        // Ensure boundaries are correct
         if (this.settings.left >= this.settings.right) {
             throw new SyntaxError(
                 `Right boundary (${this.settings.right}) must be greater than left boundary (${this.settings.left})`
@@ -112,6 +86,43 @@ export class Graph {
                 Top boundary (${this.settings.top}) must be greater than bottom boundary (${this.settings.bottom})
             `);
         }
+    }
+
+    public static parse(source: string): Graph {
+        let potentialErrorHint;
+        const split = source.split("---");
+
+        if (split.length > 2) {
+            throw new SyntaxError("Too many graph segments"); // todo - write meaninful error message
+        }
+
+        // Each (non-blank) line of the equation source contains an equation,
+        //  this will always be the last segment
+        const equations = split[split.length - 1]
+            .split(/\r?\n/g)
+            .filter((equation) => equation.trim() !== "")
+            .map(Graph.parseEquation)
+            .map((result) => {
+                if (result.hint) {
+                    potentialErrorHint = result.hint;
+                }
+                return result.data;
+            });
+
+        // If there is more than one segment then the first one will contain the settings
+        const settings = split.length > 1 ? Graph.parseSettings(split[0]) : {};
+
+        return new Graph(equations, settings, potentialErrorHint);
+    }
+
+    public async hash(): Promise<Hash> {
+        if (this._hash) {
+            return this._hash;
+        }
+
+        // If hash not in cache then calculate it
+        this._hash = await calculateHash(this);
+        return this._hash;
     }
 
     private static parseEquation(eq: string): ParseResult<Equation> {
@@ -256,40 +267,39 @@ export class Graph {
         return graphSettings;
     }
 
-    public static parse(source: string): Graph {
-        let potentialErrorHint;
-        const split = source.split("---");
-
-        if (split.length > 2) {
-            throw new SyntaxError("Too many graph segments"); // todo - write meaninful error message
+    /** Dynamically adjust graph boundary if the defaults would cause an invalid graph with the settings supplied by the user,
+     *  this will not do anything if the adjustment is not required.
+     */
+    private static adjustBounds(settings: Partial<GraphSettings>): Partial<GraphSettings> {
+        if (
+            settings.left !== undefined &&
+            settings.right === undefined &&
+            settings.left >= DEFAULT_GRAPH_SETTINGS.right
+        ) {
+            settings.right = settings.left + DEFAULT_GRAPH_WIDTH;
+        }
+        if (
+            settings.left === undefined &&
+            settings.right !== undefined &&
+            settings.right <= DEFAULT_GRAPH_SETTINGS.left
+        ) {
+            settings.left = settings.right - DEFAULT_GRAPH_WIDTH;
+        }
+        if (
+            settings.bottom !== undefined &&
+            settings.top === undefined &&
+            settings.bottom >= DEFAULT_GRAPH_SETTINGS.top
+        ) {
+            settings.top = settings.bottom + DEFAULT_GRAPH_HEIGHT;
+        }
+        if (
+            settings.bottom === undefined &&
+            settings.top !== undefined &&
+            settings.top <= DEFAULT_GRAPH_SETTINGS.bottom
+        ) {
+            settings.bottom = settings.top - DEFAULT_GRAPH_HEIGHT;
         }
 
-        // Each (non-blank) line of the equation source contains an equation,
-        //  this will always be the last segment
-        const equations = split[split.length - 1]
-            .split(/\r?\n/g)
-            .filter((equation) => equation.trim() !== "")
-            .map(Graph.parseEquation)
-            .map((result) => {
-                if (result.hint) {
-                    potentialErrorHint = result.hint;
-                }
-                return result.data;
-            });
-
-        // If there is more than one segment then the first one will contain the settings
-        const settings = split.length > 1 ? Graph.parseSettings(split[0]) : {};
-
-        return new Graph(equations, settings, potentialErrorHint);
-    }
-
-    public async hash(): Promise<Hash> {
-        if (this._hash) {
-            return this._hash;
-        }
-
-        // If hash not in cache then calculate it
-        this._hash = await calculateHash(this);
-        return this._hash;
+        return settings;
     }
 }
