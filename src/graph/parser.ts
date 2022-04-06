@@ -67,25 +67,11 @@ export class Graph {
         // Adjust bounds (if needed)
         Graph.adjustBounds(settings);
 
-        // Check graph is within maximum size
-        if ((settings.width && settings.width > MAX_SIZE) || (settings.height && settings.height > MAX_SIZE)) {
-            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
-        }
-
         // Apply defaults
         this.settings = { ...DEFAULT_GRAPH_SETTINGS, ...settings };
 
-        // Ensure boundaries are correct
-        if (this.settings.left >= this.settings.right) {
-            throw new SyntaxError(
-                `Right boundary (${this.settings.right}) must be greater than left boundary (${this.settings.left})`
-            );
-        }
-        if (this.settings.bottom >= this.settings.top) {
-            throw new SyntaxError(`
-                Top boundary (${this.settings.top}) must be greater than bottom boundary (${this.settings.bottom})
-            `);
-        }
+        // Validate settings
+        Graph.validateSettings(this.settings);
     }
 
     public static parse(source: string): Graph {
@@ -123,6 +109,25 @@ export class Graph {
         // If hash not in cache then calculate it
         this._hash = await calculateHash(this);
         return this._hash;
+    }
+
+    private static validateSettings(settings: GraphSettings) {
+        // Check graph is within maximum size
+        if ((settings.width && settings.width > MAX_SIZE) || (settings.height && settings.height > MAX_SIZE)) {
+            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
+        }
+
+        // Ensure boundaries are correct
+        if (settings.left >= settings.right) {
+            throw new SyntaxError(
+                `Right boundary (${settings.right}) must be greater than left boundary (${settings.left})`
+            );
+        }
+        if (settings.bottom >= settings.top) {
+            throw new SyntaxError(`
+                Top boundary (${settings.top}) must be greater than bottom boundary (${settings.bottom})
+            `);
+        }
     }
 
     private static parseEquation(eq: string): ParseResult<Equation> {
