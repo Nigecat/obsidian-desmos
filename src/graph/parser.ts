@@ -1,5 +1,5 @@
 import { ucast, calculateHash, Hash } from "../utils";
-import { GraphSettings, Equation, HexColor, ColorConstant, LineStyle, PointStyle } from "./interface";
+import { GraphSettings, Equation, HexColor, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
 
 /** The maximum dimensions of a graph */
 const MAX_SIZE = 99999;
@@ -12,6 +12,7 @@ const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
     bottom: -7,
     top: 7,
     grid: true,
+    degreeMode: DegreeMode.Radians,
 };
 
 const DEFAULT_GRAPH_WIDTH = Math.abs(DEFAULT_GRAPH_SETTINGS.left) + Math.abs(DEFAULT_GRAPH_SETTINGS.right);
@@ -257,10 +258,31 @@ export class Graph {
                             break;
                         }
 
+                        case "string": {
+                            // Most of the string types need to be parsed into enums,
+                            //  so we first need to figure out which enum we should be parsing
+
+                            if (key === "degreeMode") {
+                                const mode: DegreeMode | null = parseStringToEnum(DegreeMode, value as string);
+                                if (mode) {
+                                    (graphSettings[key] as DegreeMode) = mode;
+                                } else {
+                                    throw new SyntaxError(`Field '${key}' must equal either 'radians' or 'degrees'`);
+                                }
+                            }
+
+                            // If we get here then we have a field in the defaults which we did not account for, report an error to the user.
+                            else {
+                                throw new SyntaxError(
+                                    `Got unrecognized string field ${key} with value ${value}, this is a bug.`
+                                );
+                            }
+
+                            break;
+                        }
+
                         default: {
-                            throw new SyntaxError(
-                                `Got unrecognized field type ${key} with value ${value}, this is a bug.`
-                            );
+                            throw new SyntaxError(`Got unrecognized field ${key} with value ${value}, this is a bug.`);
                         }
                     }
                 } else {

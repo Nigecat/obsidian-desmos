@@ -3,7 +3,7 @@ import { ucast } from "./utils";
 import { renderError } from "./error";
 import { CacheLocation } from "./settings";
 import { normalizePath, Notice } from "obsidian";
-import { Graph, LineStyle, PointStyle } from "./graph";
+import { DegreeMode, Graph, LineStyle, PointStyle } from "./graph";
 
 interface RenderData {
     graph: Graph;
@@ -128,6 +128,8 @@ export class Renderer {
                     zoomButtons: false,
                     trace: false,
                     showGrid: ${graphSettings.grid},
+                    // Desmos takes a value of 'false' for radians and 'true' for degrees
+                    degreeMode: ${graphSettings.degreeMode === DegreeMode.Degrees},
                 };
 
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator-${hash}"), options);

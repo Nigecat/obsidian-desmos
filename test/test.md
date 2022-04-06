@@ -62,3 +62,15 @@ right=4; top=4;
 ---
 x^x=y^y|purple
 ```
+
+```desmos-graph
+degreeMode=radians;
+---
+y=\sin(x * \pi)
+```
+
+```desmos-graph
+degreeMode=degrees;
+---
+y=\sin(x * \pi)
+```
