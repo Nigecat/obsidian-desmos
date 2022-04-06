@@ -65,7 +65,7 @@ var ColorConstant;
     ColorConstant["Yellow"] = "#ffff00";
     ColorConstant["Magenta"] = "#ff00ff";
     ColorConstant["Cyan"] = "#00ffff";
-    ColorConstant["Purple"] = "#cc8899";
+    ColorConstant["Purple"] = "#6042a6";
     ColorConstant["Orange"] = "#ffa500";
     ColorConstant["Black"] = "#000000";
     ColorConstant["White"] = "#ffffff";

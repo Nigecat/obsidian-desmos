@@ -60,5 +60,5 @@ grid=false;
 left=-1; bottom=-1;
 right=4; top=4;
 ---
-x^x=y^y|blue
+x^x=y^y|purple
 ```

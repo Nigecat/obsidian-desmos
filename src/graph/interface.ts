@@ -46,7 +46,7 @@ export enum ColorConstant {
     Magenta = "#ff00ff",
     Cyan = "#00ffff",
 
-    Purple = "#cc8899",
+    Purple = "#6042a6",
     Orange = "#ffa500",
     Black = "#000000",
     White = "#ffffff",
