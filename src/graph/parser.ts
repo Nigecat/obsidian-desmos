@@ -1,5 +1,5 @@
 import { ucast, calculateHash, Hash } from "../utils";
-import { GraphSettings, Equation, HexColor, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
+import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
 
 /** The maximum dimensions of a graph */
 const MAX_SIZE = 99999;
@@ -33,13 +33,13 @@ function parseStringToEnum<V, T extends { [key: string]: V }>(obj: T, key: strin
     return objKey ? obj[objKey] : null;
 }
 
-function parseColor(value: string): ColorConstant | HexColor | null {
+function parseColor(value: string): Color | null {
     // If the value is a valid hex colour
     if (value.startsWith("#")) {
         value = value.slice(1);
         // Ensure the rest of the value is a valid alphanumeric string
         if (/^[0-9a-zA-Z]+$/.test(value)) {
-            return value as HexColor;
+            return value as Color;
         }
     }
 
@@ -72,6 +72,14 @@ export class Graph {
 
         // Validate settings
         Graph.validateSettings(this.settings);
+
+        // Apply color override
+        if (this.settings.defaultColor) {
+            this.equations = this.equations.map((equation) => ({
+                color: equation.color ?? this.settings.defaultColor,
+                ...equation,
+            }));
+        }
     }
 
     public static parse(source: string): Graph {
@@ -224,69 +232,78 @@ export class Graph {
 
                 const key = setting[0].trim() as keyof GraphSettings;
                 const value = setting.length > 1 ? setting[1].trim() : undefined;
-                const expectedType = typeof DEFAULT_GRAPH_SETTINGS[key];
 
-                if (key in DEFAULT_GRAPH_SETTINGS) {
-                    // Boolean fields default to `true` so do not require a value
-                    if (expectedType !== "boolean" && !value) {
+                const requiresValue = () => {
+                    if (value === undefined) {
                         throw new SyntaxError(`Field '${key}' must have a value`);
                     }
+                };
 
-                    switch (expectedType) {
-                        case "number": {
-                            const num = parseFloat(value as string);
-                            if (Number.isNaN(num)) {
-                                throw new SyntaxError(`Field '${key}' must have an integer (or decimal) value`);
-                            }
-                            (graphSettings[key] as number) = num;
-                            break;
-                        }
-
-                        case "boolean": {
-                            if (!value) {
-                                (graphSettings[key] as boolean) = true;
-                            } else {
-                                const lower = value.toLowerCase();
-                                if (lower !== "true" && lower !== "false") {
-                                    throw new SyntaxError(
-                                        `Field '${key}' requres a boolean value 'true'/'false' (omit a value to default to 'true')`
-                                    );
-                                }
-
-                                (graphSettings[key] as boolean) = value === "true" ? true : false;
-                            }
-                            break;
-                        }
-
-                        case "string": {
-                            // Most of the string types need to be parsed into enums,
-                            //  so we first need to figure out which enum we should be parsing
-
-                            if (key === "degreeMode") {
-                                const mode: DegreeMode | null = parseStringToEnum(DegreeMode, value as string);
-                                if (mode) {
-                                    (graphSettings[key] as DegreeMode) = mode;
-                                } else {
-                                    throw new SyntaxError(`Field '${key}' must equal either 'radians' or 'degrees'`);
-                                }
-                            }
-
-                            // If we get here then we have a field in the defaults which we did not account for, report an error to the user.
-                            else {
+                switch (key) {
+                    // Boolean fields
+                    case "grid": {
+                        if (!value) {
+                            (graphSettings[key] as boolean) = true;
+                        } else {
+                            const lower = value.toLowerCase();
+                            if (lower !== "true" && lower !== "false") {
                                 throw new SyntaxError(
-                                    `Got unrecognized string field ${key} with value ${value}, this is a bug.`
+                                    `Field '${key}' requres a boolean value 'true'/'false' (omit a value to default to 'true')`
                                 );
                             }
 
-                            break;
+                            (graphSettings[key] as boolean) = value === "true" ? true : false;
                         }
-
-                        default: {
-                            throw new SyntaxError(`Got unrecognized field ${key} with value ${value}, this is a bug.`);
-                        }
+                        break;
                     }
-                } else {
-                    throw new SyntaxError(`Unrecognised field: ${key}`);
+
+                    // Integer fields
+                    case "top":
+                    case "bottom":
+                    case "left":
+                    case "right":
+                    case "width":
+                    case "height": {
+                        requiresValue();
+                        const num = parseFloat(value as string);
+                        if (Number.isNaN(num)) {
+                            throw new SyntaxError(`Field '${key}' must have an integer (or decimal) value`);
+                        }
+                        (graphSettings[key] as number) = num;
+                        break;
+                    }
+
+                    // DegreeMode field
+                    case "degreeMode": {
+                        requiresValue();
+                        const mode: DegreeMode | null = parseStringToEnum(DegreeMode, value as string);
+                        if (mode) {
+                            graphSettings.degreeMode = mode;
+                        } else {
+                            throw new SyntaxError(`Field 'degreeMode' must be either 'radians' or 'degrees'`);
+                        }
+                        break;
+                    }
+
+                    // Color field
+                    case "defaultColor": {
+                        requiresValue();
+                        const color = parseColor(value as string);
+                        if (color) {
+                            graphSettings.defaultColor = color;
+                        } else {
+                            throw new SyntaxError(
+                                `Field 'defaultColor' must be either a valid hex code or one of: ${Object.keys(
+                                    ColorConstant
+                                ).join(", ")}`
+                            );
+                        }
+                        break;
+                    }
+
+                    default: {
+                        throw new SyntaxError(`Unrecognised field: ${key}`);
+                    }
                 }
             });
 
