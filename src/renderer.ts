@@ -189,9 +189,7 @@ export class Renderer {
                 el.empty();
 
                 if (message.data.d === "error") {
-                    if (graph.potentialErrorHint) {
-                        renderError(message.data.data, el, graph.potentialErrorHint.view);
-                    }
+                    renderError(message.data.data, el, graph.potentialErrorHint?.view);
                     resolve(); // let caller know we are done rendering
                 } else if (message.data.d === "render") {
                     const { data } = message.data;
