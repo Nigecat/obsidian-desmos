@@ -54,3 +54,11 @@ y=2x
 f(x)=x^3+x^2+x
 f'(x)|f'(x)>1
 ```
+
+```desmos-graph
+grid=false;
+left=-1; bottom=-1;
+right=4; top=4;
+---
+x^x=y^y|blue
+```
