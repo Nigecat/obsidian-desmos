@@ -13,6 +13,13 @@ export interface GraphSettings {
     top: number;
     /** Whether to show the grid or not, defaults to `true` */
     grid: boolean;
+    /** The degree mode to use for trigenometry functions, defaults to `radians` */
+    degreeMode: DegreeMode;
+}
+
+export enum DegreeMode {
+    Radians = "RADIANS",
+    Degrees = "DEGREES",
 }
 
 export interface Equation {
