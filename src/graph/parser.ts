@@ -1,5 +1,4 @@
-import { ucast } from "../utils";
-import { calculateHash, Hash } from "../hash";
+import { ucast, calculateHash, Hash } from "../utils";
 import { GraphSettings, Equation, HexColor, ColorConstant, LineStyle, PointStyle } from "./interface";
 
 /** The maximum dimensions of a graph */
