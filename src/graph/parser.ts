@@ -93,7 +93,7 @@ export class Graph {
         const split = source.split("---");
 
         if (split.length > 2) {
-            throw new SyntaxError("Too many graph segments"); // todo - write meaninful error message
+            throw new SyntaxError("Too many graph segments, there can only be a singular  '---'");
         }
 
         // Each (non-blank) line of the equation source contains an equation,
