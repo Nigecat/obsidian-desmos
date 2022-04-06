@@ -1,11 +1,12 @@
 import Desmos from "./main";
+import { ucast } from "./utils";
 import { renderError } from "./error";
 import { CacheLocation } from "./settings";
-import { Dsl, EquationStyle } from "./dsl";
 import { normalizePath, Notice } from "obsidian";
+import { Graph, LineStyle, PointStyle } from "./graph";
 
 interface RenderData {
-    args: Dsl;
+    graph: Graph;
     el: HTMLElement;
     cacheFile?: string;
     resolve: () => void;
@@ -36,12 +37,13 @@ export class Renderer {
         }
     }
 
-    public async render(args: Dsl, el: HTMLElement): Promise<void> {
+    public async render(graph: Graph, el: HTMLElement): Promise<void> {
         const plugin = this.plugin;
         const settings = plugin.settings;
 
-        const { fields, equations } = args;
-        const hash = await args.hash();
+        const equations = graph.equations;
+        const graphSettings = graph.settings;
+        const hash = await graph.hash();
 
         let cacheFile: string | undefined;
 
@@ -67,47 +69,47 @@ export class Renderer {
             }
         }
 
-        const expressions = equations.map(
-            (equation) =>
-                `calculator.setExpression({
-                    latex: \`${equation.equation.replace(/\\/g, "\\\\")}${
-                    // interpolation is safe as we ensured the string did not contain any quotes in the parser
-                    (equation.restriction ?? "")
-                        .replaceAll("{", "\\\\{")
-                        .replaceAll("}", "\\\\}")
-                        .replaceAll("<=", "\\\\leq ")
-                        .replaceAll(">=", "\\\\geq ")
-                        .replaceAll("<", "\\\\le ")
-                        .replaceAll(">", "\\\\ge ")
-                }\`,
+        // Parse equations into a series of Desmos expressions
+        const expressions: string[] = [];
+        for (const equation of equations) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const expression: any = {};
 
-                    hidden: ${equation.hidden ?? false},
+            if (equation.restrictions) {
+                const restriction = equation.restrictions
+                    .map((restriction) =>
+                        `{${restriction}}`
+                            // Escape chars
+                            .replaceAll("{", String.raw`\{`)
+                            .replaceAll("}", String.raw`\}`)
+                            .replaceAll("<=", String.raw`\leq `)
+                            .replaceAll(">=", String.raw`\geq `)
+                            .replaceAll("<", String.raw`\le `)
+                            .replaceAll(">", String.raw`\ge `)
+                    )
+                    .join("");
 
-                    ${(() => {
-                        if (equation.style) {
-                            if (
-                                [EquationStyle.Solid, EquationStyle.Dashed, EquationStyle.Dotted].contains(
-                                    equation.style
-                                )
-                            ) {
-                                return `lineStyle: Desmos.Styles.${equation.style},`;
-                            } else if (
-                                [EquationStyle.Point, EquationStyle.Open, EquationStyle.Cross].contains(equation.style)
-                            ) {
-                                return `pointStyle: Desmos.Styles.${equation.style},`;
-                            }
-                        }
+                expression.latex = `${equation.equation}${restriction}`;
+            } else {
+                expression.latex = equation.equation;
+            }
 
-                        return "";
-                    })()}
+            if (equation.color) {
+                expression.color = equation.color;
+            }
 
-                    ${
-                        equation.color
-                            ? `color: \`${equation.color}\`,` // interpolation is safe as we ensured the string was alphanumeric in the parser
-                            : ""
-                    }
-                });`
-        );
+            if (equation.style) {
+                if (Object.values(LineStyle).includes(ucast(equation.style))) {
+                    expression.lineStyle = equation.style;
+                } else if (Object.values(PointStyle).includes(ucast(equation.style))) {
+                    expression.pointStyle = equation.style;
+                }
+            }
+
+            // Calling JSON.stringify twice allows us to escape the strings as well,
+            //  meaning we can embed it directly into the calculator to undo the first stringification without parsing
+            expressions.push(`calculator.setExpression(JSON.parse(${JSON.stringify(JSON.stringify(expression))}));`);
+        }
 
         // Because of the electron sandboxing we have to do this inside an iframe (and regardless this is safer),
         //   otherwise we can't include the desmos API (although it would be nice if they had a REST API of some sort)
@@ -115,7 +117,9 @@ export class Renderer {
         //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
         const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
-            <div id="calculator-${hash}" style="width: ${fields.width}px; height: ${fields.height}px;"></div>
+            <div id="calculator-${hash}" style="width: ${graphSettings.width}px; height: ${
+            graphSettings.height
+        }px;"></div>
             <script>
                 const options = {
                     settingsMenu: false,
@@ -123,18 +127,18 @@ export class Renderer {
                     lockViewPort: true,
                     zoomButtons: false,
                     trace: false,
-                    showGrid: ${fields.grid},
+                    showGrid: ${graphSettings.grid},
                 };
 
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator-${hash}"), options);
                 calculator.setMathBounds({
-                    left: ${fields.left},
-                    right: ${fields.right},
-                    top: ${fields.top},
-                    bottom: ${fields.bottom},
+                    left: ${graphSettings.left},
+                    right: ${graphSettings.right},
+                    top: ${graphSettings.top},
+                    bottom: ${graphSettings.bottom},
                 });
 
-                ${expressions.join("")}
+                ${expressions.join("\n")}
 
                 // Desmos returns an error if we try to observe the expressions without any defined
                 if (${expressions.length > 0}) {
@@ -162,8 +166,8 @@ export class Renderer {
 
         const iframe = document.createElement("iframe");
         iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
-        iframe.width = fields.width.toString();
-        iframe.height = fields.height.toString();
+        iframe.width = graphSettings.width.toString();
+        iframe.height = graphSettings.height.toString();
         iframe.style.border = "none";
         iframe.scrolling = "no"; // fixme use a non-depreciated function
         iframe.srcdoc = htmlSrc;
@@ -171,7 +175,7 @@ export class Renderer {
 
         el.appendChild(iframe);
 
-        return new Promise((resolve) => this.rendering.set(hash, { args, el, resolve, cacheFile }));
+        return new Promise((resolve) => this.rendering.set(hash, { graph, el, resolve, cacheFile }));
     }
 
     private async handler(
@@ -180,12 +184,12 @@ export class Renderer {
         if (message.data.o === window.origin && message.data.t === "desmos-graph") {
             const state = this.rendering.get(message.data.hash);
             if (state) {
-                const { args, el, resolve, cacheFile } = state;
+                const { graph, el, resolve, cacheFile } = state;
 
                 el.empty();
 
                 if (message.data.d === "error") {
-                    renderError(message.data.data, el, args.potentialErrorCause);
+                    renderError(message.data.data, el, graph.potentialErrorHint?.view);
                     resolve(); // let caller know we are done rendering
                 } else if (message.data.d === "render") {
                     const { data } = message.data;
@@ -197,7 +201,7 @@ export class Renderer {
 
                     const plugin = this.plugin;
                     const settings = plugin.settings;
-                    const hash = await args.hash();
+                    const hash = await graph.hash();
                     if (settings.cache.enabled) {
                         if (settings.cache.location === CacheLocation.Memory) {
                             plugin.graphCache[hash] = data;
