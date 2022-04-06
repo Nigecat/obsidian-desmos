@@ -48,7 +48,7 @@ function parseColor(value: string): Color | null {
 }
 
 export class Graph {
-    private _hash?: Hash;
+    private _hash: Promise<Hash>;
 
     public readonly equations: Equation[];
     public readonly settings: GraphSettings;
@@ -66,6 +66,10 @@ export class Graph {
 
         // Adjust bounds (if needed)
         Graph.adjustBounds(settings);
+
+        // Generate hash on the raw equation and setting data,
+        //  this means that if we extend the settings with new fields pre-existing graphs will have the same hash
+        this._hash = calculateHash({ equations, settings });
 
         // Apply defaults
         this.settings = { ...DEFAULT_GRAPH_SETTINGS, ...settings };
@@ -110,12 +114,6 @@ export class Graph {
     }
 
     public async hash(): Promise<Hash> {
-        if (this._hash) {
-            return this._hash;
-        }
-
-        // If hash not in cache then calculate it
-        this._hash = await calculateHash(this);
         return this._hash;
     }
 
