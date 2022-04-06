@@ -84,7 +84,9 @@ The valid colors are (case-insensitive):
  - `ORANGE`
  - `BLACK`
  - `WHITE`
- - Any hex color code beginning with `#` (e.g `#42ddf5`)
+ - Any hex color code beginning with `#` (e.g `#42ddf5`)  
+
+Note that the default color can be set by using the `defaultColor` field in the graph settings. This field follows the same format.
 
 The valid styles are (case-insensitive):
  - Line (e.g `y=x`)

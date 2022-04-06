@@ -74,3 +74,11 @@ degreeMode=degrees;
 ---
 y=\sin(x * \pi)
 ```
+
+```desmos-graph
+defaultColor=red;
+---
+y=\tan(x)
+y=-\tan(x)
+y=0|yellow
+```

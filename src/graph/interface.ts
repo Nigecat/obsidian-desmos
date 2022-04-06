@@ -15,6 +15,10 @@ export interface GraphSettings {
     grid: boolean;
     /** The degree mode to use for trigenometry functions, defaults to `radians` */
     degreeMode: DegreeMode;
+    /** The default color to set all equations to.
+     *  If this is not specified, each equation will be a random {@link ColorConstant} (assigned by Desmos).
+     */
+    defaultColor?: Color;
 }
 
 export enum DegreeMode {
@@ -41,6 +45,8 @@ export enum PointStyle {
     Open = "OPEN",
     Cross = "CROSS",
 }
+
+export type Color = HexColor | ColorConstant;
 
 export type HexColor = string;
 
