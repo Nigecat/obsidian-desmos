@@ -65,6 +65,9 @@ You can restrict the bounds of the graph and apply other settings by placing a `
 You can set the dimensions of the rendered image by using the `height` and `width` fields.  
 Additionally, you can disable the graph grid by setting `grid=false`.
 
+You can set the mode of trigonometry functions by using the `degreeMode` setting.  
+This has two valid values: `radians` or `degrees`. By default, it will be set to `radians`.
+
 ## Equation Control
 
 You can additionally set three other fields for each equation - the style, color, and a restriction.
@@ -81,7 +84,9 @@ The valid colors are (case-insensitive):
  - `ORANGE`
  - `BLACK`
  - `WHITE`
- - Any hex color code beginning with `#` (e.g `#42ddf5`)
+ - Any hex color code beginning with `#` (e.g `#42ddf5`)  
+
+Note that the default color can be set by using the `defaultColor` field in the graph settings. This field follows the same format.
 
 The valid styles are (case-insensitive):
  - Line (e.g `y=x`)
