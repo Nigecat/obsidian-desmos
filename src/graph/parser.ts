@@ -36,9 +36,8 @@ function parseStringToEnum<V, T extends { [key: string]: V }>(obj: T, key: strin
 function parseColor(value: string): Color | null {
     // If the value is a valid hex colour
     if (value.startsWith("#")) {
-        value = value.slice(1);
         // Ensure the rest of the value is a valid alphanumeric string
-        if (/^[0-9a-zA-Z]+$/.test(value)) {
+        if (/^[0-9a-zA-Z]+$/.test(value.slice(1))) {
             return value as Color;
         }
     }
