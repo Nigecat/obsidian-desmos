@@ -1,3 +1,4 @@
+import Desmos from "src/main";
 import { ucast, calculateHash, Hash } from "../utils";
 import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
 
@@ -12,12 +13,18 @@ const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
     bottom: -7,
     top: 7,
     grid: true,
+    lock: false,
+    live: false,
     degreeMode: DegreeMode.Radians,
 };
 
 const DEFAULT_GRAPH_WIDTH = Math.abs(DEFAULT_GRAPH_SETTINGS.left) + Math.abs(DEFAULT_GRAPH_SETTINGS.right);
 
 const DEFAULT_GRAPH_HEIGHT = Math.abs(DEFAULT_GRAPH_SETTINGS.bottom) + Math.abs(DEFAULT_GRAPH_SETTINGS.top);
+
+export interface UpdateContext {
+    plugin: Desmos;
+}
 
 export interface PotentialErrorHint {
     view: HTMLSpanElement;
@@ -114,6 +121,10 @@ export class Graph {
 
     public async hash(): Promise<Hash> {
         return this._hash;
+    }
+
+    public async update(ctx: UpdateContext, data: Partial<GraphSettings>) {
+        // todo
     }
 
     private static validateSettings(settings: GraphSettings) {
@@ -238,6 +249,8 @@ export class Graph {
 
                 switch (key) {
                     // Boolean fields
+                    case "lock":
+                    case "live":
                     case "grid": {
                         if (!value) {
                             (graphSettings[key] as boolean) = true;

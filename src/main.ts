@@ -24,7 +24,8 @@ export default class Desmos extends Plugin {
         this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
             try {
                 const graph = Graph.parse(source);
-                await this.renderer.render(graph, el);
+                const live = graph.settings.lock ? false : graph.settings.live || this.settings.live;
+                await this.renderer.render(graph, el, live);
             } catch (err) {
                 if (err instanceof Error) {
                     renderError(err.message, el);

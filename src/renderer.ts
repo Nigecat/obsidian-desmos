@@ -42,7 +42,7 @@ export class Renderer {
         }
     }
 
-    public async render(graph: Graph, el: HTMLElement): Promise<void> {
+    public async render(graph: Graph, el: HTMLElement, live: boolean): Promise<void> {
         const plugin = this.plugin;
         const settings = plugin.settings;
 

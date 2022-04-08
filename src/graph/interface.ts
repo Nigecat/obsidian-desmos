@@ -13,6 +13,10 @@ export interface GraphSettings {
     top: number;
     /** Whether to show the grid or not, defaults to `true` */
     grid: boolean;
+    /** Whether to enable live mode for this graph, this will allow the preview to be moved to set the bounds and zoom */
+    live: boolean;
+    /** Whether to disable live mode for this graph, this will override all other settings */
+    lock: boolean;
     /** The degree mode to use for trigenometry functions, defaults to `radians` */
     degreeMode: DegreeMode;
     /** The default color to set all equations to.
