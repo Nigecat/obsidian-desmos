@@ -12,6 +12,8 @@ export interface Settings {
     // /** The debounce timer (in ms) */
     // debounce: number;
     cache: CacheSettings;
+    /** Whether live mode is enabled */
+    live: boolean;
 }
 
 export interface CacheSettings {
@@ -22,6 +24,7 @@ export interface CacheSettings {
 
 const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
     // debounce: 500,
+    live: false,
     cache: {
         enabled: true,
         location: CacheLocation.Memory,
@@ -37,8 +40,14 @@ export function DEFAULT_SETTINGS(plugin: Desmos): Settings {
 }
 
 /** Attempt to migrate the given settings object to the current structure */
-export function migrateSettings(plugin: Desmos, settings: object): Settings {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function migrateSettings(_plugin: Desmos, settings: any): Settings {
     // todo (there is currently only one version of the settings interface)
+    // Added in v0.x.x // todo set correct version
+    if (settings.live === undefined) {
+        settings.live = DEFAULT_SETTINGS_STATIC.live;
+    }
+
     return settings as Settings;
 }
 
@@ -68,6 +77,20 @@ export class SettingsTab extends PluginSettingTab {
         //             await this.plugin.saveSettings();
         //         })
         //     );
+
+        new Setting(containerEl)
+            .setName("Live")
+            .setDesc(
+                "Whether live mode is enabled, this will allow you to directly interact with the rendered graph to modify the positioning and scale. Note that this can be enabled on a per-graph basis by using the `live` flag."
+            )
+            .addToggle((toggle) =>
+                toggle.setValue(this.plugin.settings.live).onChange(async (value) => {
+                    this.plugin.settings.live = value;
+                    await this.plugin.saveSettings();
+                    // Clear graph cache so the user doesn't need to restart Obsidian for this setting to take effect
+                    this.plugin.graphCache = {};
+                })
+            );
 
         new Setting(containerEl)
             .setName("Cache")
