@@ -104,7 +104,7 @@ export class SettingsTab extends PluginSettingTab {
                 new Setting(containerEl)
                     .setName("Cache Directory")
                     .setDesc(
-                        `The directory to save cached graphs in, relative to the vault root (technical note: the graphs will be saved as \`desmos-graph-<hash>.png\` where the name is a SHA-256 hash of the graph source). Also note that a lot of junk will be saved to this folder, you have been warned.`
+                        `The directory to save cached graphs in, relative to the vault root (technical note: the graphs will be saved as \`desmos-graph-<hash>.svg\` where the name is a SHA-256 hash of the graph source). Also note that a lot of junk will be saved to this folder, you have been warned.`
                     )
                     .addText((text) => {
                         text.setValue(this.plugin.settings.cache.directory ?? "").onChange(async (value) => {
