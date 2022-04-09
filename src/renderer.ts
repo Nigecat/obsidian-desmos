@@ -3,7 +3,7 @@ import { ucast } from "./utils";
 import { renderError } from "./error";
 import { CacheLocation } from "./settings";
 import { normalizePath, Notice } from "obsidian";
-import { DegreeMode, Graph, LineStyle, PointStyle } from "./graph";
+import { DegreeMode, Graph, GraphSettings, LineStyle, PointStyle } from "./graph";
 
 /** Parse an SVG into a DOM element */
 function parseSVG(svg: string): HTMLElement {
@@ -15,6 +15,7 @@ interface RenderData {
     el: HTMLElement;
     cacheFile?: string;
     resolve: () => void;
+    update?: (data: Partial<GraphSettings>) => void;
 }
 
 export class Renderer {
@@ -42,7 +43,7 @@ export class Renderer {
         }
     }
 
-    public async render(graph: Graph, el: HTMLElement, live: boolean): Promise<void> {
+    public async render(graph: Graph, el: HTMLElement, update?: (data: Partial<GraphSettings>) => void): Promise<void> {
         const plugin = this.plugin;
         const settings = plugin.settings;
 
@@ -158,12 +159,29 @@ export class Renderer {
                     });
                 }
 
-                calculator.asyncScreenshot({ showLabels: true, format: "svg" }, (data) => {
-                    document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", d: "render", o: "${
-                        window.origin
-                    }", data, hash: "${hash}" }, "${window.origin}");
-                });
+                if (${update !== undefined}) {
+                    // Live mode does not need to resolve to a screenshot
+                    calculator.observe("graphpaperBounds", () => {
+                        const bounds = calculator.graphpaperBounds.mathCoordinates;
+                        const update = {
+                            left: bounds.left,
+                            right: bounds.right,
+                            bottom: bounds.bottom,
+                            top: bounds.top,
+                        };
+
+                        parent.postMessage({ t: "desmos-graph", d: "update", o: "${
+                            window.origin
+                        }", data: JSON.stringify(update), hash: "${hash}" }, "${window.origin}");
+                    });
+                } else {
+                    calculator.asyncScreenshot({ showLabels: true, format: "svg" }, (data) => {
+                        document.body.innerHTML = "";
+                        parent.postMessage({ t: "desmos-graph", d: "render", o: "${
+                            window.origin
+                        }", data, hash: "${hash}" }, "${window.origin}");
+                    });   
+                }
             </script>
         `;
         const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
@@ -179,22 +197,30 @@ export class Renderer {
 
         el.appendChild(iframe);
 
-        return new Promise((resolve) => this.rendering.set(hash, { graph, el, resolve, cacheFile }));
+        return new Promise((resolve) => this.rendering.set(hash, { graph, el, resolve, cacheFile, update }));
     }
 
     private async handler(
-        message: MessageEvent<{ t: string; d: string; o: string; data: string; hash: string }>
+        message: MessageEvent<{ t: string; d: "error" | "render" | "update"; o: string; data: string; hash: string }>
     ): Promise<void> {
         if (message.data.o === window.origin && message.data.t === "desmos-graph") {
             const state = this.rendering.get(message.data.hash);
             if (state) {
-                const { graph, el, resolve, cacheFile } = state;
+                const { update, graph, el, resolve, cacheFile } = state;
 
-                el.empty();
+                if (message.data.d !== "update") {
+                    el.empty();
+                }
 
                 if (message.data.d === "error") {
                     renderError(message.data.data, el, graph.potentialErrorHint?.view);
                     resolve(); // let caller know we are done rendering
+                } else if (message.data.d === "update" && update !== undefined) {
+                    // Handle live mode update
+                    const data: Partial<GraphSettings> = JSON.parse(message.data.data);
+                    update(data);
+                    return;
+                    // resolve
                 } else if (message.data.d === "render") {
                     const { data } = message.data;
 
@@ -229,7 +255,9 @@ export class Renderer {
                     }
                 }
 
-                this.rendering.delete(message.data.hash);
+                if (message.data.d !== "update") {
+                    this.rendering.delete(message.data.hash);
+                }
             } else {
                 // do nothing if graph is not in render list (this should not happen)
                 console.warn(

@@ -1,5 +1,6 @@
 import Desmos from "src/main";
 import { ucast, calculateHash, Hash } from "../utils";
+import { MarkdownPostProcessorContext } from "obsidian";
 import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
 
 /** The maximum dimensions of a graph */
@@ -24,6 +25,7 @@ const DEFAULT_GRAPH_HEIGHT = Math.abs(DEFAULT_GRAPH_SETTINGS.bottom) + Math.abs(
 
 export interface UpdateContext {
     plugin: Desmos;
+    ctx: MarkdownPostProcessorContext;
 }
 
 export interface PotentialErrorHint {
@@ -124,6 +126,8 @@ export class Graph {
     }
 
     public async update(ctx: UpdateContext, data: Partial<GraphSettings>) {
+        console.log("do update with data:");
+        console.log(data);
         // todo
     }
 
