@@ -30,7 +30,10 @@ export default class Desmos extends Plugin {
 
                 // If live mode is enabled, generate an update function using the specific context of this markdown codeblock
                 const update = live
-                    ? debounce((data: Partial<GraphSettings>) => graph.update({ ctx, plugin: this }, data), 250)
+                    ? debounce(
+                          (data: Partial<GraphSettings>) => graph.update({ target: el, ctx, plugin: this }, data),
+                          500
+                      )
                     : undefined;
 
                 await this.renderer.render(graph, el, update);
