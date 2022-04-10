@@ -1,6 +1,6 @@
 import Desmos from "src/main";
 import { ucast, calculateHash, Hash } from "../utils";
-import { EditorChange, MarkdownPostProcessorContext, MarkdownView } from "obsidian";
+import { EditorChange, EditorPosition, MarkdownPostProcessorContext, MarkdownView } from "obsidian";
 import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
 
 /** The maximum dimensions of a graph */
@@ -54,6 +54,15 @@ function parseColor(value: string): Color | null {
 
     // If the value is a valid colour constant
     return parseStringToEnum(ColorConstant, value);
+}
+
+/** Convery a character index of the source to a line number and character position */
+function chToPos(ch: number, source: string): EditorPosition | undefined {
+    if (ch <= source.length) {
+        const lines = source.slice(0, ch).split(/\r?\n/g);
+
+        return { line: lines.length - 1, ch: lines[lines.length - 1].length };
+    }
 }
 
 export class Graph {
@@ -178,11 +187,29 @@ export class Graph {
                         const globalOffset = existing.index;
                         const offset = globalOffset + valueOffset;
 
+                        // Determine the relative position of the target to the codeblock
+                        const relativeStart = chToPos(offset, content);
+
                         // Determine the offset of the codeblock from the start of the file
                         //  (and by extension, the offset of the target value from the start of the file)
-                        const absoluteOffset = info.lineStart; // todo (note that these are character offsets)
+                        if (relativeStart) {
+                            const start = { line: info.lineStart + relativeStart.line, ch: relativeStart.ch };
+                            const end = { line: start.line, ch: start.ch + existingValueLength };
 
-                        console.log(absoluteOffset, existingValueLength);
+                            console.log({
+                                value: value.toString(),
+                                offset,
+                                length: existingValueLength,
+                                start,
+                                end,
+                            });
+
+                            changes.push({
+                                text: value.toString(),
+                                from: start,
+                                to: end,
+                            });
+                        }
                     }
                 } else {
                     // If the key is not already there, then we need to insert it
