@@ -184,15 +184,14 @@ export class Graph {
                         const valueOffset = existing[0].length - existingValueLength - extra;
 
                         // Determine the offset of the start of the key=value pair from the start of the codeblock
-                        const globalOffset = existing.index;
-                        const offset = globalOffset + valueOffset;
+                        const offset = existing.index + valueOffset;
 
                         // Determine the relative position of the target to the codeblock
                         const relativeStart = chToPos(offset, content);
 
-                        // Determine the offset of the codeblock from the start of the file
-                        //  (and by extension, the offset of the target value from the start of the file)
                         if (relativeStart) {
+                            // Determine the offset of the codeblock from the start of the file
+                            //  (and by extension, the offset of the target value from the start of the file)
                             const start = { line: info.lineStart + relativeStart.line, ch: relativeStart.ch };
                             const end = { line: start.line, ch: start.ch + existingValueLength };
 
