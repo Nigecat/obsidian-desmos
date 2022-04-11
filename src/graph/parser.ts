@@ -168,11 +168,11 @@ export class Graph {
             // Attempt to insert new fields in a way which does not interfere with the existing format set by the user
             for (const [key, value] of Object.entries(data)) {
                 // If this key already exists in the source, then we can just change its value
-                const existing = new RegExp(String.raw`${key}\s*=\s*[a-zA-Z0-9#]+\s*[\n;]`, "g").exec(content);
+                const existing = new RegExp(String.raw`${key}\s*=\s*[^\s\n;]+\s*[\n;]`, "g").exec(content);
 
                 // Duplicate keys are not allowed so there should always be zero or one matches
                 if (existing && existing.length > 0) {
-                    const existingValue = /=\s*[a-zA-Z0-9#]+/g.exec(existing[0]);
+                    const existingValue = /=\s*[^\s\n;]+/g.exec(existing[0]);
                     if (existingValue && existingValue.length > 0) {
                         // Determine the length of the current value of this key
                         const existingValueLength = existingValue[0].substring(1).trim().length;
