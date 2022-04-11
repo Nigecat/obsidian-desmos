@@ -163,11 +163,13 @@ export class Renderer {
                     // Live mode does not need to resolve to a screenshot
                     calculator.observe("graphpaperBounds", () => {
                         const bounds = calculator.graphpaperBounds.mathCoordinates;
+
+                        // Restrict all fields to two decimal places (Desmos returns them with ~20)
                         const update = {
-                            left: bounds.left,
-                            right: bounds.right,
-                            bottom: bounds.bottom,
-                            top: bounds.top,
+                            left: bounds.left.toFixed(2),
+                            right: bounds.right.toFixed(2),
+                            bottom: bounds.bottom.toFixed(2),
+                            top: bounds.top.toFixed(2),
                         };
 
                         parent.postMessage({ t: "desmos-graph", d: "update", o: "${

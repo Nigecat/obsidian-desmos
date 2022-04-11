@@ -143,7 +143,7 @@ export class Graph {
         const { ctx, plugin, target } = updateCtx;
 
         console.log("Performing update with data:");
-        console.log(data); // todo float values should be truncated
+        console.log(data);
 
         const info = ctx.getSectionInfo(target);
         const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
@@ -217,10 +217,13 @@ export class Graph {
             }
 
             // Apply changes in a single transaction so ctrl+z and the like function as expected
+            console.log(changes);
             editor.transaction({ changes });
 
             // Update our internal object
             this._settings = { ...this.settings, ...data };
+        } else {
+            console.warn("Attempted to perform graph update but failed due to invalid source location");
         }
     }
 
