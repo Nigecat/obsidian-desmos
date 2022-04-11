@@ -1,7 +1,7 @@
-import { Graph } from "./graph";
-import { Plugin } from "obsidian";
 import { Renderer } from "./renderer";
 import { renderError } from "./error";
+import { Plugin, debounce } from "obsidian";
+import { Graph, GraphSettings } from "./graph";
 import { DEFAULT_SETTINGS, migrateSettings, Settings, SettingsTab } from "./settings";
 
 export default class Desmos extends Plugin {
@@ -21,10 +21,22 @@ export default class Desmos extends Plugin {
 
         this.addSettingTab(new SettingsTab(this.app, this));
 
-        this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
+        this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el, ctx) => {
             try {
                 const graph = Graph.parse(source);
-                await this.renderer.render(graph, el);
+
+                // Determine whether live mode should be enabled for this graph
+                const live = graph.settings.lock ? false : graph.settings.live || this.settings.live;
+
+                // If live mode is enabled, generate an update function using the specific context of this markdown codeblock
+                const update = live
+                    ? debounce(
+                          (data: Partial<GraphSettings>) => graph.update({ target: el, ctx, plugin: this }, data),
+                          500
+                      )
+                    : undefined;
+
+                await this.renderer.render(graph, el, update);
             } catch (err) {
                 if (err instanceof Error) {
                     renderError(err.message, el);

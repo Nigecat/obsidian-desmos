@@ -1,4 +1,6 @@
+import Desmos from "src/main";
 import { ucast, calculateHash, Hash } from "../utils";
+import { EditorChange, EditorPosition, MarkdownPostProcessorContext, MarkdownView } from "obsidian";
 import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
 
 /** The maximum dimensions of a graph */
@@ -12,12 +14,20 @@ const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
     bottom: -7,
     top: 7,
     grid: true,
+    lock: false,
+    live: false,
     degreeMode: DegreeMode.Radians,
 };
 
 const DEFAULT_GRAPH_WIDTH = Math.abs(DEFAULT_GRAPH_SETTINGS.left) + Math.abs(DEFAULT_GRAPH_SETTINGS.right);
 
 const DEFAULT_GRAPH_HEIGHT = Math.abs(DEFAULT_GRAPH_SETTINGS.bottom) + Math.abs(DEFAULT_GRAPH_SETTINGS.top);
+
+export interface UpdateContext {
+    plugin: Desmos;
+    target: HTMLElement;
+    ctx: MarkdownPostProcessorContext;
+}
 
 export interface PotentialErrorHint {
     view: HTMLSpanElement;
@@ -46,14 +56,27 @@ function parseColor(value: string): Color | null {
     return parseStringToEnum(ColorConstant, value);
 }
 
+/** Convery a character index of the source to a line number and character position */
+function chToPos(ch: number, source: string): EditorPosition | undefined {
+    if (ch <= source.length) {
+        const lines = source.slice(0, ch).split(/\r?\n/g);
+
+        return { line: lines.length - 1, ch: lines[lines.length - 1].length };
+    }
+}
+
 export class Graph {
     private _hash: Promise<Hash>;
+    private _settings: GraphSettings;
 
     public readonly equations: Equation[];
-    public readonly settings: GraphSettings;
 
     /**  Supplementary error information if the source if valid but Desmos returns an error */
     public readonly potentialErrorHint?: PotentialErrorHint;
+
+    public get settings(): GraphSettings {
+        return this._settings;
+    }
 
     public constructor(
         equations: Equation[],
@@ -71,7 +94,7 @@ export class Graph {
         this._hash = calculateHash({ equations, settings });
 
         // Apply defaults
-        this.settings = { ...DEFAULT_GRAPH_SETTINGS, ...settings };
+        this._settings = { ...DEFAULT_GRAPH_SETTINGS, ...settings };
 
         // Validate settings
         Graph.validateSettings(this.settings);
@@ -114,6 +137,94 @@ export class Graph {
 
     public async hash(): Promise<Hash> {
         return this._hash;
+    }
+
+    public async update(updateCtx: UpdateContext, data: Partial<GraphSettings>) {
+        const { ctx, plugin, target } = updateCtx;
+
+        console.log("Performing update with data:");
+        console.log(data);
+
+        const info = ctx.getSectionInfo(target);
+        const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+
+        if (info && editor) {
+            // Extract the content of the codeblock
+            const content = info.text.split(/\r?\n/g).slice(info.lineStart, info.lineEnd).join("\n");
+
+            // The changes made to the document,
+            //   these will be applied in parallel so all line numbers and character offsets should be relative to the original content
+            const changes: EditorChange[] = [];
+
+            // If there is no separator, add one
+            if (!content.includes("---")) {
+                changes.push({
+                    text: `---\n`,
+                    from: { line: info.lineStart + 1, ch: 0 },
+                    to: { line: info.lineStart + 1, ch: 0 },
+                });
+            }
+
+            // Attempt to insert new fields in a way which does not interfere with the existing format set by the user
+            for (const [key, value] of Object.entries(data)) {
+                // If this key already exists in the source, then we can just change its value
+                const existing = new RegExp(String.raw`${key}\s*=\s*[^\s\n;]+\s*[\n;]`, "g").exec(content);
+
+                // Duplicate keys are not allowed so there should always be zero or one matches
+                if (existing && existing.length > 0) {
+                    const existingValue = /=\s*[^\s\n;]+/g.exec(existing[0]);
+                    if (existingValue && existingValue.length > 0) {
+                        // Determine the length of the current value of this key
+                        const existingValueLength = existingValue[0].substring(1).trim().length;
+
+                        // Get the content after the current value (but before the separator)
+                        const extra = existing[0].length - (existingValue.index + existingValue[0].length);
+
+                        // Determine the offset of the start of the existing value from the key=value pair
+                        const valueOffset = existing[0].length - existingValueLength - extra;
+
+                        // Determine the offset of the start of the key=value pair from the start of the codeblock
+                        const offset = existing.index + valueOffset;
+
+                        // Determine the relative position of the target to the codeblock
+                        const relativeStart = chToPos(offset, content);
+
+                        if (relativeStart) {
+                            // Determine the offset of the codeblock from the start of the file
+                            //  (and by extension, the offset of the target value from the start of the file)
+                            const start = { line: info.lineStart + relativeStart.line, ch: relativeStart.ch };
+                            const end = { line: start.line, ch: start.ch + existingValueLength };
+
+                            console.log({
+                                value: value.toString(),
+                                offset,
+                                length: existingValueLength,
+                                start,
+                                end,
+                            });
+
+                            changes.push({
+                                text: value.toString(),
+                                from: start,
+                                to: end,
+                            });
+                        }
+                    }
+                } else {
+                    // If the key is not already there, then we need to insert it
+                    // todo
+                }
+            }
+
+            // Apply changes in a single transaction so ctrl+z and the like function as expected
+            console.log(changes);
+            editor.transaction({ changes });
+
+            // Update our internal object
+            this._settings = { ...this.settings, ...data };
+        } else {
+            console.warn("Attempted to perform graph update but failed due to invalid source location");
+        }
     }
 
     private static validateSettings(settings: GraphSettings) {
@@ -236,8 +347,14 @@ export class Graph {
                     }
                 };
 
+                if (key in graphSettings) {
+                    throw new SyntaxError(`Duplicate key '${key}' not allowed`);
+                }
+
                 switch (key) {
                     // Boolean fields
+                    case "lock":
+                    case "live":
                     case "grid": {
                         if (!value) {
                             (graphSettings[key] as boolean) = true;
