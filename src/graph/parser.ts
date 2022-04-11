@@ -182,6 +182,21 @@ export class Graph {
                 continue;
             }
 
+            // If this is a valid label string
+            if (segmentUpperCase.startsWith("LABEL:")) {
+                const label = segment.split(":").slice(1).join(":");
+
+                if (equation.label === undefined) {
+                    equation.label = label;
+                } else {
+                    throw new SyntaxError(
+                        `Duplicate equation labels detected, each equation may only contain a single label.`
+                    );
+                }
+
+                continue;
+            }
+
             // If none of the above, assume it is a graph restriction
             if (segment.includes("\\")) {
                 // If the restriction included a `\` (the LaTeX control character) then the user may have tried to use the LaTeX syntax in the graph restriction (e.g `\frac{1}{2}`)
