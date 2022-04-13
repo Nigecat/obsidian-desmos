@@ -78,6 +78,7 @@ export class Renderer {
             const expression: any = {
                 color: equation.color,
                 label: equation.label,
+                showLabel: equation.label !== undefined,
             };
 
             if (equation.restrictions) {

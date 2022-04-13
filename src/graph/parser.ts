@@ -184,10 +184,14 @@ export class Graph {
 
             // If this is a valid label string
             if (segmentUpperCase.startsWith("LABEL:")) {
-                const label = segment.split(":").slice(1).join(":");
+                const label = segment.split(":").slice(1).join(":").trim();
 
                 if (equation.label === undefined) {
-                    equation.label = label;
+                    if (label === "") {
+                        throw new SyntaxError(`Equation label must have a value`);
+                    } else {
+                        equation.label = label;
+                    }
                 } else {
                     throw new SyntaxError(
                         `Duplicate equation labels detected, each equation may only contain a single label.`
