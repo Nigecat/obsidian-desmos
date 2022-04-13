@@ -1,3 +1,7 @@
 # Obsidian Desmos
 
-TODO - [Usage](usage.md)
+TODO 
+
+ - [Installation](installation.md)
+ - [Usage](usage.md)
+ - [Offline Usage](offline.md)
