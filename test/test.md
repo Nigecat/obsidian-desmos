@@ -82,3 +82,8 @@ y=\tan(x)
 y=-\tan(x)
 y=0|yellow
 ```
+
+```desmos-graph
+(0,0)|label:(0,0)
+(5,4)|open|label:This is a label
+```

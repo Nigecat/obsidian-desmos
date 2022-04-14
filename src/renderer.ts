@@ -75,7 +75,11 @@ export class Renderer {
         const expressions: string[] = [];
         for (const equation of equations) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const expression: any = {};
+            const expression: any = {
+                color: equation.color,
+                label: equation.label,
+                showLabel: equation.label !== undefined,
+            };
 
             if (equation.restrictions) {
                 const restriction = equation.restrictions
@@ -94,10 +98,6 @@ export class Renderer {
                 expression.latex = `${equation.equation}${restriction}`;
             } else {
                 expression.latex = equation.equation;
-            }
-
-            if (equation.color) {
-                expression.color = equation.color;
             }
 
             if (equation.style) {

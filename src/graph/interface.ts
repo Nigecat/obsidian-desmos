@@ -32,6 +32,7 @@ export interface Equation {
     style?: LineStyle | PointStyle;
     color?: ColorConstant | HexColor;
     hidden?: boolean;
+    label?: string;
 }
 
 export enum LineStyle {
