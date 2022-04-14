@@ -139,8 +139,21 @@ Additionally, individual equations can be hidden with the `hidden` flag, this ca
   ![hidden](https://user-images.githubusercontent.com/48661288/161505291-9a28618a-d14e-48ec-9d5e-14b7235db733.png)
 </details>
 
-For the sake of readability, we recommend using the following order (where applicable): `equation|restriction|style|color`
+### Labels
 
-### Offline Usage
+Point labels can be specified with the `label:<content>` flag (equation labels are unsupported by Desmos):  
+````
+    ```desmos-graph
+        (0,0)|label:(0,0)
+        (5,4)|open|label:This is a label
+    ```
+````
+<details>
+  <summary>View Graph</summary>
+
+  ![label](https://user-images.githubusercontent.com/48661288/163488878-a1d8daeb-8ac6-41e7-9a6c-899b0a7f3c5f.svg)
+</details>
+
+## Offline Usage
 
 If you've rendered at least one graph while connected to the internet then any future graphs (irrespective of the cache setting) should be able to render (if they don't then make an issue here).
