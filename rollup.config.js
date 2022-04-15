@@ -29,7 +29,6 @@ export default {
                   copyOnce: true,
                   flatten: false,
                   targets: [{ src: ["manifest.json", "versions.json"], dest: TEST_VAULT }],
-                  // hook: "writeBundle",
               }),
     ],
 };
