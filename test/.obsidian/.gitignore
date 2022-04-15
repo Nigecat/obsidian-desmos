@@ -1,3 +1,2 @@
-*
-!.gitignore
-!/plugins/**/*
+/workspace
+/plugins/obsidian-desmos/
