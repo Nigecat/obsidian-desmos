@@ -139,7 +139,7 @@ export class Graph {
         return this._hash;
     }
 
-    public async update(updateCtx: UpdateContext, data: Partial<GraphSettings>) {
+    public async update(updateCtx: UpdateContext, data: Partial<GraphSettings>, write = true) {
         const { ctx, plugin, target } = updateCtx;
 
         console.log("Performing update with data:");
@@ -212,16 +212,19 @@ export class Graph {
                     }
                 } else {
                     // If the key is not already there, then we need to insert it
-                    // todo
+                    // todo - currently we require the key to already exist
+                    throw new SyntaxError("err");
                 }
             }
 
             // Apply changes in a single transaction so ctrl+z and the like function as expected
-            console.log(changes);
-            editor.transaction({ changes });
+            if (write) {
+                console.log(changes);
+                editor.transaction({ changes });
 
-            // Update our internal object
-            this._settings = { ...this.settings, ...data };
+                // Update our internal object
+                this._settings = { ...this.settings, ...data };
+            }
         } else {
             console.warn("Attempted to perform graph update but failed due to invalid source location");
         }

@@ -36,6 +36,21 @@ export default class Desmos extends Plugin {
                       )
                     : undefined;
 
+                if (update) {
+                    // Trigger an empty update event,
+                    //  this will ensure that any errors will be caught before the user attempts to modify the graph
+                    graph.update(
+                        { target: el, ctx, plugin: this },
+                        {
+                            left: graph.settings.left,
+                            right: graph.settings.right,
+                            top: graph.settings.top,
+                            bottom: graph.settings.bottom,
+                        },
+                        false
+                    );
+                }
+
                 await this.renderer.render(graph, el, update);
             } catch (err) {
                 if (err instanceof Error) {
