@@ -36,9 +36,8 @@ function parseStringToEnum<V, T extends { [key: string]: V }>(obj: T, key: strin
 function parseColor(value: string): Color | null {
     // If the value is a valid hex colour
     if (value.startsWith("#")) {
-        value = value.slice(1);
         // Ensure the rest of the value is a valid alphanumeric string
-        if (/^[0-9a-zA-Z]+$/.test(value)) {
+        if (/^[0-9a-zA-Z]+$/.test(value.slice(1))) {
             return value as Color;
         }
     }
@@ -180,6 +179,25 @@ export class Graph {
                         `Duplicate color identifiers detected, each equation may only contain a single color code.`
                     );
                 }
+                continue;
+            }
+
+            // If this is a valid label string
+            if (segmentUpperCase.startsWith("LABEL:")) {
+                const label = segment.split(":").slice(1).join(":").trim();
+
+                if (equation.label === undefined) {
+                    if (label === "") {
+                        throw new SyntaxError(`Equation label must have a value`);
+                    } else {
+                        equation.label = label;
+                    }
+                } else {
+                    throw new SyntaxError(
+                        `Duplicate equation labels detected, each equation may only contain a single label.`
+                    );
+                }
+
                 continue;
             }
 

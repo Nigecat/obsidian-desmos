@@ -5,6 +5,11 @@ import { CacheLocation } from "./settings";
 import { normalizePath, Notice } from "obsidian";
 import { DegreeMode, Graph, LineStyle, PointStyle } from "./graph";
 
+/** Parse an SVG into a DOM element */
+function parseSVG(svg: string): HTMLElement {
+    return new DOMParser().parseFromString(svg, "image/svg+xml").documentElement;
+}
+
 interface RenderData {
     graph: Graph;
     el: HTMLElement;
@@ -51,19 +56,16 @@ export class Renderer {
         if (settings.cache.enabled) {
             if (settings.cache.location === CacheLocation.Memory && hash in plugin.graphCache) {
                 const data = plugin.graphCache[hash];
-                const img = document.createElement("img");
-                img.src = data;
-                el.appendChild(img);
+                el.appendChild(parseSVG(data));
                 return;
             } else if (settings.cache.location === CacheLocation.Filesystem && settings.cache.directory) {
                 const adapter = plugin.app.vault.adapter;
 
-                cacheFile = normalizePath(`${settings.cache.directory}/desmos-graph-${hash}.png`);
+                cacheFile = normalizePath(`${settings.cache.directory}/desmos-graph-${hash}.svg`);
                 // If this graph is in the cache
                 if (await adapter.exists(cacheFile)) {
-                    const img = document.createElement("img");
-                    img.src = adapter.getResourcePath(cacheFile);
-                    el.appendChild(img);
+                    const data = await adapter.read(cacheFile);
+                    el.appendChild(parseSVG(data));
                     return;
                 }
             }
@@ -73,7 +75,11 @@ export class Renderer {
         const expressions: string[] = [];
         for (const equation of equations) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const expression: any = {};
+            const expression: any = {
+                color: equation.color,
+                label: equation.label,
+                showLabel: equation.label !== undefined,
+            };
 
             if (equation.restrictions) {
                 const restriction = equation.restrictions
@@ -92,10 +98,6 @@ export class Renderer {
                 expression.latex = `${equation.equation}${restriction}`;
             } else {
                 expression.latex = equation.equation;
-            }
-
-            if (equation.color) {
-                expression.color = equation.color;
             }
 
             if (equation.style) {
@@ -156,7 +158,7 @@ export class Renderer {
                     });
                 }
 
-                calculator.asyncScreenshot({ showLabels: true, format: "png" }, (data) => {
+                calculator.asyncScreenshot({ showLabels: true, format: "svg" }, (data) => {
                     document.body.innerHTML = "";
                     parent.postMessage({ t: "desmos-graph", d: "render", o: "${
                         window.origin
@@ -196,9 +198,7 @@ export class Renderer {
                 } else if (message.data.d === "render") {
                     const { data } = message.data;
 
-                    const img = document.createElement("img");
-                    img.src = data;
-                    el.appendChild(img);
+                    el.appendChild(parseSVG(data));
                     resolve(); // let caller know we are done rendering
 
                     const plugin = this.plugin;
@@ -212,8 +212,7 @@ export class Renderer {
 
                             if (cacheFile && settings.cache.directory) {
                                 if (await adapter.exists(settings.cache.directory)) {
-                                    const buffer = Buffer.from(data.replace(/^data:image\/png;base64,/, ""), "base64");
-                                    await adapter.writeBinary(cacheFile, buffer);
+                                    await adapter.write(cacheFile, data);
                                 } else {
                                     new Notice(
                                         `desmos-graph: target cache directory '${settings.cache.directory}' does not exist, skipping cache`,
