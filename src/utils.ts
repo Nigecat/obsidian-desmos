@@ -4,6 +4,7 @@ export type Hash = string;
 export async function calculateHash<T>(val: T): Promise<Hash> {
     const data = new TextEncoder().encode(JSON.stringify(val));
 
+    /* istanbul ignore if */
     if (typeof crypto !== "undefined") {
         const buffer = await crypto.subtle.digest("SHA-256", data);
         const raw = Array.from(new Uint8Array(buffer));
