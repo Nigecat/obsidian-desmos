@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { describe, it } from "mocha";
-import { Graph, Color, ColorConstant, LineStyle, PointStyle } from "../src/graph";
+import { Graph, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "../src/graph";
 
 function parseGraph(data: { equation?: string; equations?: string[]; settings?: string | string[] }): Graph {
     const { equation, equations, settings } = data;
@@ -59,6 +59,10 @@ describe("parser", () => {
                 });
 
                 it("hex", () => {
+                    // Check that something which is very clearly not a hex code is not parsed
+                    const graph = parseGraph({ equation: "y=x|#-3==[]=42!" });
+                    expect(graph.equations[0].color).to.be.undefined;
+
                     const runHexColorTests = (matrix: Color[]) => {
                         matrix.forEach((color) => {
                             const graph = parseGraph({ equation: `y=x|${color}` });
@@ -123,6 +127,10 @@ describe("parser", () => {
     });
 
     describe("arguments", () => {
+        it("segments", () => {
+            expect(() => parseGraph({ settings: "width=1=5" })).to.throw(SyntaxError);
+        });
+
         describe("separator", () => {
             it("semicolon", () => {
                 const graph = parseGraph({ settings: "width=800; height=600;" });
@@ -143,22 +151,60 @@ describe("parser", () => {
                 expect(graph.settings.left).to.equal(0);
                 expect(graph.settings.right).to.equal(50);
             });
-
-            it("symmetric", () => {
-                // todo
-            });
         });
 
         it("dimensions (width, height)", () => {
-            // todo
+            let graph = parseGraph({ settings: ["width=200", "height=60"] });
+            expect(graph.settings.height).to.equal(60);
+            expect(graph.settings.width).to.equal(200);
+
+            // Check max size
+            graph = parseGraph({ settings: ["height=99999", "width=99999"] });
+            expect(graph.settings.height).to.equal(99999);
+            expect(graph.settings.width).to.equal(99999);
+            expect(() => parseGraph({ settings: ["height=100000", "width=100000"] })).to.throw(SyntaxError);
         });
 
         it("bounds (left, right, top, bottom)", () => {
-            // todo
+            const graph = parseGraph({ settings: ["left=1", "right=2", "bottom=3", "top=4"] });
+            expect(graph.settings.left).to.equal(1);
+            expect(graph.settings.right).to.equal(2);
+            expect(graph.settings.bottom).to.equal(3);
+            expect(graph.settings.top).to.equal(4);
+
+            // Check sanity
+            expect(() => parseGraph({ settings: ["left=10", "right=-10"] })).to.throw(SyntaxError);
+            expect(() => parseGraph({ settings: ["bottom=6", "top=6"] })).to.throw(SyntaxError);
+        });
+
+        it("degreeMode", () => {
+            let graph = parseGraph({}); // check default
+            expect(graph.settings.degreeMode).to.equal(DegreeMode.Radians);
+
+            graph = parseGraph({ settings: "degreeMode=radians" });
+            expect(graph.settings.degreeMode).to.equal(DegreeMode.Radians);
+
+            graph = parseGraph({ settings: "degreeMode=degrees" });
+            expect(graph.settings.degreeMode).to.equal(DegreeMode.Degrees);
         });
 
         it("grid", () => {
-            // todo
+            let graph = parseGraph({ settings: "grid" });
+            expect(graph.settings.grid).to.equal(true);
+
+            graph = parseGraph({ settings: "grid=false" });
+            expect(graph.settings.grid).to.equal(false);
+        });
+
+        it("defaultColor", () => {
+            const graph = parseGraph({ settings: "defaultColor=blue", equations: ["y=x|green", "y=2x"] });
+            expect(graph.equations).to.deep.equal([
+                {
+                    equation: "y=x",
+                    color: ColorConstant.Green,
+                },
+                { equation: "y=2x", color: ColorConstant.Blue },
+            ]);
         });
     });
 });
