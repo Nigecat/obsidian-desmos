@@ -1,2 +1,4 @@
+/.nyc_output
+
 /data.json
 /node_modules/

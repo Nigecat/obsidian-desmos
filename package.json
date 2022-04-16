@@ -8,8 +8,10 @@
         "build": "rollup --config rollup.config.js --environment BUILD:production",
         "build:dev": "rollup --config rollup.config.js -w",
         "lint": "eslint src --ext .ts",
-        "test": "cross-env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.spec.ts'",
-        "test:clean": "npm run build && npm test"
+        "test": "cross-env TS_NODE_COMPILER_OPTIONS={\\\"module\\\":\\\"commonjs\\\"} npm run test:clean",
+        "test:raw": "mocha -r ts-node/register 'tests/**/*.spec.ts'",
+        "test:clean": "npm run build && npm run test:raw",
+        "test:coverage": "nyc npm test"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^19.0.0",
@@ -27,11 +29,12 @@
         "eslint-plugin-jsdoc": "^38.0.6",
         "eslint-plugin-prefer-arrow": "^1.2.3",
         "mocha": "^9.2.2",
+        "nyc": "^15.1.0",
         "obsidian": "^0.14.6",
         "rollup": "^2.51.2",
         "rollup-plugin-copy": "^3.4.0",
         "ts-node": "^10.7.0",
         "tslib": "^2.3.0",
-        "typescript": "^4.3.2"
+        "typescript": "^4.6.3"
     }
 }
