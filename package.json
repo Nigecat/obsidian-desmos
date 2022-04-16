@@ -11,7 +11,7 @@
         "test": "cross-env TS_NODE_COMPILER_OPTIONS={\\\"module\\\":\\\"commonjs\\\"} npm run test:clean",
         "test:raw": "mocha -r ts-node/register 'tests/**/*.spec.ts'",
         "test:clean": "npm run build && npm run test:raw",
-        "test:coverage": "nyc npm test"
+        "test:coverage": "nyc --reporter html --reporter text npm test"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^19.0.0",
