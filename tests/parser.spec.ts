@@ -1,127 +1,187 @@
 import { expect } from "chai";
 import { describe, it } from "mocha";
-import { Graph, ColorConstant, LineStyle, PointStyle } from "../src/graph";
+import { Graph, Color, ColorConstant, LineStyle, PointStyle } from "../src/graph";
 
-const parse = (source: string) => Graph.parse(source);
-const source = (args?: string[], equations?: string[]) => `
-${args ? args.join("\n") : ""}
-${args ? "---" : ""}
-${equations ? equations.join("\n") : ""}
-`;
+function parseGraph(data: { equation?: string; equations?: string[]; settings?: string | string[] }): Graph {
+    const { equation, equations, settings } = data;
 
-describe("hash", () => {
-    it("generate", async () => {
-        const hash = await parse(source([], ["y=x"])).hash();
-        expect(hash.length).to.equal(64);
-    });
+    const fieldSource = settings ? (Array.isArray(settings) ? settings.join("\n") : settings) : null;
+    const equationSource = (equations ?? [equation] ?? []).join("\n");
 
-    it("consistent", async () => {
-        // Ensure hashes don't change between versions (without a good reason)
-        const hash = await parse(source([], ["y=x"])).hash();
-        expect(hash).to.equal("21d7e41c19ea4bf443cba38f56cacbf3468eb1334d0dc0cdeb3798b8a9b36ad8");
-    });
-});
+    const source = fieldSource ? `${fieldSource}\n---\n${equationSource}` : equationSource;
+
+    return Graph.parse(source);
+}
 
 describe("parser", () => {
+    it("segments", () => {
+        expect(() => Graph.parse("---\n---")).to.throw(SyntaxError);
+    });
+
     describe("equations", () => {
+        it("empty", () => {
+            const graph = parseGraph({});
+            expect(graph.equations).to.deep.equal([]);
+        });
+
         it("single equation", () => {
-            expect(parse(source([], ["y=x"])).equations).to.deep.equal([{ equation: "y=x" }]);
+            const graph = parseGraph({ equation: "y=x" });
+            expect(graph.equations).to.deep.equal([{ equation: "y=x" }]);
         });
 
         it("multiple equations", () => {
-            expect(parse(source([], ["y=x", "y=2x"])).equations).to.deep.equal([
-                { equation: "y=x" },
-                { equation: "y=2x" },
-            ]);
+            const graph = parseGraph({ equations: ["y=x", "y=2x"] });
+            expect(graph.equations).to.deep.equal([{ equation: "y=x" }, { equation: "y=2x" }]);
         });
 
-        describe("arguments", () => {
-            it("hidden", () => {
-                expect(parse(source([], ["y=x|hidden"])).equations[0].hidden).to.equal(true);
-            });
-
+        describe("fields", () => {
             describe("color", () => {
-                it("hex", () => {
-                    expect(parse(source([], ["y=x|#0ff"])).equations[0].color).to.equal("#0ff");
-                    expect(parse(source([], ["y=x|#87ceeb"])).equations[0].color).to.equal("#87ceeb");
-                });
-
                 it("constant", () => {
-                    expect(parse(source([], ["y=x|red"])).equations[0].color).to.equal(ColorConstant.Red);
-                    expect(parse(source([], ["y=x|green"])).equations[0].color).to.equal(ColorConstant.Green);
-                    expect(parse(source([], ["y=x|blue"])).equations[0].color).to.equal(ColorConstant.Blue);
+                    const runConstantColorTests = (matrix: [string, Color][]) => {
+                        matrix.forEach((color) => {
+                            const graph = parseGraph({ equation: `y=x|${color[0]}` });
+                            expect(graph.equations).to.deep.equal([{ equation: "y=x", color: color[1] }]);
+                        });
+                    };
+
+                    runConstantColorTests([
+                        ["red", ColorConstant.Red],
+                        ["green", ColorConstant.Green],
+                        ["blue", ColorConstant.Blue],
+                        ["yellow", ColorConstant.Yellow],
+                        ["magenta", ColorConstant.Magenta],
+                        ["cyan", ColorConstant.Cyan],
+                        ["purple", ColorConstant.Purple],
+                        ["orange", ColorConstant.Orange],
+                        ["black", ColorConstant.Black],
+                        ["white", ColorConstant.White],
+                    ]);
+                });
+
+                it("hex", () => {
+                    const runHexColorTests = (matrix: Color[]) => {
+                        matrix.forEach((color) => {
+                            const graph = parseGraph({ equation: `y=x|${color}` });
+                            expect(graph.equations).to.deep.equal([{ equation: "y=x", color }]);
+                        });
+                    };
+
+                    runHexColorTests(["#00FFFF", "#0c9ccc", "#fff"]);
                 });
             });
 
-            describe("style", () => {
-                it("line", () => {
-                    expect(parse(source([], ["y=x|solid"])).equations[0].style).to.equal(LineStyle.Solid);
-                    expect(parse(source([], ["y=x|dashed"])).equations[0].style).to.equal(LineStyle.Dashed);
-                    expect(parse(source([], ["y=x|dotted"])).equations[0].style).to.equal(LineStyle.Dotted);
-                });
-
-                it("point", () => {
-                    expect(parse(source([], ["(0,0)|point"])).equations[0].style).to.equal(PointStyle.Point);
-                    expect(parse(source([], ["(0,0)|open"])).equations[0].style).to.equal(PointStyle.Open);
-                    expect(parse(source([], ["(0,0)|cross"])).equations[0].style).to.equal(PointStyle.Cross);
-                });
+            it("hidden", () => {
+                const graph = parseGraph({ equation: "y=x|hidden" });
+                expect(graph.equations).to.deep.equal([{ equation: "y=x", hidden: true }]);
             });
 
-            describe("restrictions", () => {
-                it("single restriction", () => {
-                    expect(parse(source([], ["y=x|x>0"])).equations[0].restrictions).to.deep.equal(["x>0"]);
-                });
+            it("style", () => {
+                const runStyleTests = (matrix: (PointStyle | LineStyle)[]) => {
+                    matrix.forEach((style) => {
+                        const graph = parseGraph({ equation: `y=x|${style}` });
+                        expect(graph.equations).to.deep.equal([{ equation: "y=x", style }]);
+                    });
+                };
 
-                it("multiple restrictionss", () => {
-                    expect(parse(source([], ["y=x|x>0|y>0"])).equations[0].restrictions).to.deep.equal(["x>0", "y>0"]);
-                });
+                runStyleTests([
+                    PointStyle.Open,
+                    PointStyle.Cross,
+                    PointStyle.Point,
+                    LineStyle.Solid,
+                    LineStyle.Dashed,
+                    LineStyle.Dotted,
+                ]);
+            });
+
+            it("restrictions", () => {
+                let graph = parseGraph({ equation: "y=x|0<x<5" });
+                expect(graph.equations).to.deep.equal([{ equation: "y=x", restrictions: ["0<x<5"] }]);
+
+                graph = parseGraph({ equation: String.raw`y=\sin(x)|x>0|y>0` });
+                expect(graph.equations).to.deep.equal([
+                    { equation: String.raw`y=\sin(x)`, restrictions: ["x>0", "y>0"] },
+                ]);
+            });
+
+            it("label", () => {
+                const graph = parseGraph({ equation: "y=x|label:A straight line with a gradient of 1" });
+                expect(graph.equations).to.deep.equal([
+                    {
+                        equation: "y=x",
+                        label: "A straight line with a gradient of 1",
+                    },
+                ]);
+            });
+
+            it("combined", () => {
+                const graph = parseGraph({ equation: "x=2|y>0|dashed|green" });
+                expect(graph.equations).to.deep.equal([
+                    { equation: "x=2", style: LineStyle.Dashed, color: ColorConstant.Green, restrictions: ["y>0"] },
+                ]);
             });
         });
     });
 
     describe("arguments", () => {
-        it("separator:semicolon", () => {
-            let graph = parse(source(["width=800; height=600"]));
-            expect(graph.settings.width).to.equal(800);
-            expect(graph.settings.height).to.equal(600);
+        describe("separator", () => {
+            it("semicolon", () => {
+                const graph = parseGraph({ settings: "width=800; height=600;" });
+                expect(graph.settings.width).to.equal(800);
+                expect(graph.settings.height).to.equal(600);
+            });
 
-            graph = parse(source(["width=800", "height=600"]));
-            expect(graph.settings.width).to.equal(800);
-            expect(graph.settings.height).to.equal(600);
+            it("newline", () => {
+                const graph = parseGraph({ settings: ["width=800", "height=600"] });
+                expect(graph.settings.width).to.equal(800);
+                expect(graph.settings.height).to.equal(600);
+            });
+
+            it("mixed", () => {
+                const graph = parseGraph({ settings: ["left=0; width=800;", "height=600", "right=50"] });
+                expect(graph.settings.width).to.equal(800);
+                expect(graph.settings.height).to.equal(600);
+                expect(graph.settings.left).to.equal(0);
+                expect(graph.settings.right).to.equal(50);
+            });
+
+            it("symmetric", () => {
+                // todo
+            });
         });
 
-        it("separator:newline", () => {
-            const graph = parse(source(["width=500", "height=700"]));
-            expect(graph.settings.width).to.equal(500);
-            expect(graph.settings.height).to.equal(700);
+        it("dimensions (width, height)", () => {
+            // todo
         });
 
-        it("separator:align", () => {
-            expect(
-                parse(source(["width=200; height=201; left=-100; right=101; bottom=-102; top=103;"])).settings
-            ).to.deep.equal(
-                parse(source(["width=200", "height=201", "left=-100", "right=101", "bottom=-102", "top=103"])).settings
-            );
-        });
-
-        it("dimensions:width,height", () => {
-            const graph = parse(source(["width=125; height=521"]));
-            expect(graph.settings.width).to.equal(125);
-            expect(graph.settings.height).to.equal(521);
-        });
-
-        it("bounds:left,right,top,bottom", () => {
-            const graph = parse(source(["left=-50; right=51; bottom=-54; top=26"]));
-            expect(graph.settings.left).to.equal(-50);
-            expect(graph.settings.right).to.equal(51);
-            expect(graph.settings.bottom).to.equal(-54);
-            expect(graph.settings.top).to.equal(26);
+        it("bounds (left, right, top, bottom)", () => {
+            // todo
         });
 
         it("grid", () => {
-            expect(parse(source()).settings.grid).to.equal(true);
-            expect(parse(source(["grid=true"])).settings.grid).to.equal(true);
-            expect(parse(source(["grid=false"])).settings.grid).to.equal(false);
+            // todo
         });
+    });
+});
+
+describe("hash", () => {
+    it("generate", async () => {
+        const hash = await parseGraph({ equation: "y=x" }).hash();
+        expect(hash.length).to.equal(64);
+    });
+
+    it("consistent", async () => {
+        const TARGET_HASH = "21d7e41c19ea4bf443cba38f56cacbf3468eb1334d0dc0cdeb3798b8a9b36ad8";
+
+        // Ensure hashes don't change between versions (without a good reason)
+        let hash = await parseGraph({ equation: "y=x" }).hash();
+        expect(hash).to.equal(TARGET_HASH);
+
+        // Ensure hash includes headers in calculation
+        hash = await parseGraph({ equation: "y=x", settings: "grid=false" }).hash();
+        expect(hash).to.not.equal(TARGET_HASH);
+
+        // Ensure hash is calculated after processing
+        const hash2 = await parseGraph({ equation: "y=x    ", settings: "grid   = false" }).hash();
+        expect(hash2).to.equal(hash);
     });
 });
