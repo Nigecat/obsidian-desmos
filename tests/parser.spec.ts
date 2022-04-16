@@ -9,6 +9,19 @@ ${args ? "---" : ""}
 ${equations ? equations.join("\n") : ""}
 `;
 
+describe("hash", () => {
+    it("generate", async () => {
+        const hash = await parse(source([], ["y=x"])).hash();
+        expect(hash.length).to.equal(64);
+    });
+
+    it("consistent", async () => {
+        // Ensure hashes don't change between versions (without a good reason)
+        const hash = await parse(source([], ["y=x"])).hash();
+        expect(hash).to.equal("21d7e41c19ea4bf443cba38f56cacbf3468eb1334d0dc0cdeb3798b8a9b36ad8");
+    });
+});
+
 describe("parser", () => {
     describe("equations", () => {
         it("single equation", () => {
@@ -84,8 +97,10 @@ describe("parser", () => {
         });
 
         it("separator:align", () => {
-            expect(parse(source(["width=200; height=201; left=-100; right=101; bottom=-102; top=103;"]))).to.deep.equal(
-                parse(source(["width=200", "height=201", "left=-100", "right=101", "bottom=-102", "top=103"]))
+            expect(
+                parse(source(["width=200; height=201; left=-100; right=101; bottom=-102; top=103;"])).settings
+            ).to.deep.equal(
+                parse(source(["width=200", "height=201", "left=-100", "right=101", "bottom=-102", "top=103"])).settings
             );
         });
 
