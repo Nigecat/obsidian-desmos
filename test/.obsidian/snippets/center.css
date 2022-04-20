@@ -1,0 +1,6 @@
+/* Horizontally center the graph in the page content */
+.desmos-graph {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}

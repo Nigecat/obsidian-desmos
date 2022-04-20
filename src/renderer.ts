@@ -172,6 +172,7 @@ export class Renderer {
         iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
         iframe.width = graphSettings.width.toString();
         iframe.height = graphSettings.height.toString();
+        iframe.className = "desmos-graph";
         iframe.style.border = "none";
         iframe.scrolling = "no"; // fixme use a non-depreciated function
         iframe.srcdoc = htmlSrc;
@@ -198,7 +199,9 @@ export class Renderer {
                 } else if (message.data.d === "render") {
                     const { data } = message.data;
 
-                    el.appendChild(parseSVG(data));
+                    const node = parseSVG(data);
+                    node.setAttribute("class", "desmos-graph");
+                    el.appendChild(node);
                     resolve(); // let caller know we are done rendering
 
                     const plugin = this.plugin;
