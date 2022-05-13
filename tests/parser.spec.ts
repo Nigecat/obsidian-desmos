@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { describe, it } from "mocha";
+
 import { Graph, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "../src/graph";
 
 function parseGraph(data: { equation?: string; equations?: string[]; settings?: string | string[] }): Graph {
