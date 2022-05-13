@@ -9,7 +9,7 @@
         "build:dev": "rollup --config rollup.config.js -w",
         "lint": "eslint src --ext .ts",
         "test": "cross-env TS_NODE_COMPILER_OPTIONS={\\\"module\\\":\\\"commonjs\\\"} npm run test:clean",
-        "test:raw": "mocha -r ts-node/register 'tests/**/*.spec.ts'",
+        "test:raw": "mocha --parallel -r ts-node/register 'tests/**/*.spec.ts'",
         "test:clean": "npm run build && npm run test:raw",
         "test:coverage": "nyc --reporter html --reporter text npm test"
     },

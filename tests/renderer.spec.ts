@@ -1,33 +1,42 @@
 import { expect } from "chai";
-import { describe, it } from "mocha";
+import { before, describe, it } from "mocha";
 
-const TEST_PAGE = `
-<!DOCTYPE html>
-<html>
+import * as path from "path";
+import * as fs from "fs/promises";
+import * as puppeteer from "puppeteer";
 
-<head>
-</head>
+// Rendering can take awhile (especially if we have to load the browser context),
+//  so increase timeout to 4 seconds
+const TIMEOUT = 4000;
 
-<body> 
-    <div id="desmos-graph"></div>
-</body>
+// Whether to run browser context in headless mode,
+//  this should only be set to `false` for debug purposes
+const HEADLESS = false;
 
-</html>`;
+// Test html page with a div to render the graph into
+const TEST_PAGE = `<!DOCTYPE html><html><body><div id="desmos-graph"></div></body></html>`;
 
-describe("renderer", () => {
-    it("works", async () => {
-        const path = await import("path");
-        const fs = await import("fs/promises");
-        const puppeteer = await import("puppeteer");
+class RendererTester {
+    private readonly browser: puppeteer.Browser;
 
-        const browser = await puppeteer.launch({ headless: false });
-        const page = await browser.newPage();
+    private constructor(browser: puppeteer.Browser) {
+        this.browser = browser;
+    }
 
-        // Web-crypto api requires a 'secure context',
+    public static async create(): Promise<RendererTester> {
+        const browser = await puppeteer.launch({ headless: HEADLESS });
+        return new RendererTester(browser);
+    }
+
+    /** Render a graph, returns the relevant svg string */
+    public async render(source: string): Promise<string> {
+        const page = await this.browser.newPage();
+
+        // The web-crypto api requires a 'secure context',
         //      this means we can't simply inject the page content into a new tab
         // Opening an empty file url appears to fix the issue
         // await page.goto("file:///"); // only works on linux
-        await page.goto("file:///C:");  // only works on windows
+        await page.goto("file:///C:"); // only works on windows
 
         // Set our test page content
         page.setContent(TEST_PAGE);
@@ -44,7 +53,7 @@ describe("renderer", () => {
 
         // <-- Plugin is now available at module.exports -->
 
-        const svg = await page.evaluate(() => {
+        const svg = await page.evaluate((source) => {
             return new Promise((resolve) => {
                 // Create plugin instance
                 const plugin = new module.exports();
@@ -55,15 +64,37 @@ describe("renderer", () => {
                     const proc = plugin.getCodeBlockProcessor("desmos-graph");
 
                     // Render graph
-                    proc(`y=x`, document.getElementById("desmos-graph")).then(() => {
+                    proc(source, document.getElementById("desmos-graph")).then(() => {
                         const svg = document.getElementById("desmos-graph")?.innerHTML;
                         resolve(svg);
                     });
                 });
             });
-        });
-        await browser.close();
+        }, source);
 
+        return svg as string;
+    }
+
+    public async dispose(): Promise<void> {
+        await this.browser.close();
+    }
+}
+
+describe("renderer", function () {
+    this.timeout(TIMEOUT);
+    this.slow(TIMEOUT / 2);
+    let framework: RendererTester;
+
+    before(async () => {
+        framework = await RendererTester.create();
+    });
+
+    after(async () => {
+        await framework.dispose();
+    });
+
+    it("works", async () => {
+        const svg = await framework.render("y=x");
         console.log(svg);
     });
 });
