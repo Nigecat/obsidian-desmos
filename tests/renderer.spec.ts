@@ -7,8 +7,8 @@ import * as puppeteer from "puppeteer";
 import { readFileSync } from "fs";
 
 // Rendering can take awhile (especially if we have to load the browser context),
-//  so increase timeout to 4 seconds
-const TIMEOUT = 5000;
+//  so increase timeout to 10 seconds
+const TIMEOUT = 10000;
 
 // Whether to run browser context in headless mode,
 //  this should only be set to `false` for debug purposes
@@ -30,9 +30,7 @@ const PLUGIN = readFileSync(path.join(__dirname, "..", "main.js"), { encoding: "
 const tests = readFileSync(path.join(__dirname, "graphs", "README.md"), { encoding: "utf-8" })
     .split(/\r?\n/g)
     // remove title and description lines
-    .splice(3)
-    // get every second element - the rest are the svg embeds
-    .filter((_, i) => i % 2 == 0);
+    .splice(3);
 
 class RendererTester {
     private readonly browser: puppeteer.Browser;

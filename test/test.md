@@ -1,4 +1,8 @@
 ```desmos-graph
+y=x
+```
+
+```desmos-graph
 left=-2; right=2;
 bottom=-1; top=3;
 ---
@@ -44,7 +48,6 @@ y=-x|x>=1
 ```
 
 ```desmos-graph
----
 y=\frac{1}{x}
 y=3/2|green
 y=2x

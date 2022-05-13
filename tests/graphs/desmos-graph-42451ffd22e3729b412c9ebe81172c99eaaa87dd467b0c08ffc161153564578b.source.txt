@@ -1,0 +1,5 @@
+defaultColor=red;
+---
+y=\tan(x)
+y=-\tan(x)
+y=0|yellow
