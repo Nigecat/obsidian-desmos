@@ -51,8 +51,7 @@ class RendererTester {
         // The web-crypto api requires a 'secure context',
         //      this means we can't simply inject the page content into a new tab
         // Opening an empty file url appears to fix the issue
-        // await page.goto("file:///"); // only works on linux
-        await page.goto("file:///C:"); // only works on windows
+        await page.goto(`file://${path.parse(process.cwd()).root}`);
 
         // Set our test page content
         page.setContent(TEST_PAGE);
