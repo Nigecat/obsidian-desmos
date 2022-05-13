@@ -1,0 +1,34 @@
+/* Set the graph background colour */
+.desmos-graph .dcg-svg-background {
+    fill: var(--background-primary);
+}
+
+/* Set gridline colour */
+.desmos-graph .dcg-svg-minor-gridline {
+    stroke: var(--background-modifier-border); 
+}
+
+/* Set axis colour */
+.desmos-graph .dcg-svg-axis-line {
+    stroke: var(--background-accent); 
+}
+
+/* Set axis text border colour (you probably want this to be the same as the graph background colour) */
+.desmos-graph .dcg-svg-axis-value :nth-child(1) {
+    stroke: var(--background-primary);
+}
+
+/* Set axis text colour */
+.desmos-graph .dcg-svg-axis-value :nth-child(2) {
+    stroke: var(--text-accent);
+}
+
+/* Set label text colour */
+.desmos-graph .dcg-svg-label :nth-child(2) > * :nth-child(1) {
+    stroke: var(--text-accent);
+}
+
+/* Set label text border colour (you probably want this to be the same as the graph background colour) */
+.desmos-graph .dcg-svg-label :nth-child(1) > * :nth-child(1) {
+    stroke: var(--background-primary);
+}
