@@ -27,10 +27,12 @@ const STUB = readFileSync(path.join(__dirname, "stub.js"), { encoding: "utf-8" }
 const PLUGIN = readFileSync(path.join(__dirname, "..", "main.js"), { encoding: "utf-8" });
 
 // Determine tests
-const tests = readFileSync(path.join(__dirname, "graphs", "README.txt"), { encoding: "utf-8" })
+const tests = readFileSync(path.join(__dirname, "graphs", "README.md"), { encoding: "utf-8" })
     .split(/\r?\n/g)
-    // remove title line
-    .splice(1);
+    // remove title and description lines
+    .splice(3)
+    // get every second element - the rest are the svg embeds
+    .filter((_, i) => i % 2 == 0);
 
 class RendererTester {
     private readonly browser: puppeteer.Browser;

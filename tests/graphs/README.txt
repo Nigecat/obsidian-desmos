@@ -1,2 +1,0 @@
----------- Renderer Tests ----------
-basic
