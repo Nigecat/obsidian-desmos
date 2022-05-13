@@ -26,7 +26,8 @@ describe("renderer", () => {
         // Web-crypto api requires a 'secure context',
         //      this means we can't simply inject the page content into a new tab
         // Opening an empty file url appears to fix the issue
-        await page.goto("file:///");
+        // await page.goto("file:///"); // only works on linux
+        await page.goto("file:///C:");  // only works on windows
 
         // Set our test page content
         page.setContent(TEST_PAGE);
@@ -43,41 +44,26 @@ describe("renderer", () => {
 
         // <-- Plugin is now available at module.exports -->
 
-        page.evaluate(() => {
-            // Create plugin instance
-            const plugin = new module.exports();
+        const svg = await page.evaluate(() => {
+            return new Promise((resolve) => {
+                // Create plugin instance
+                const plugin = new module.exports();
 
-            // Init plugin
-            plugin.onload().then(() => {
-                // Fetch codeblock
-                const proc = plugin.getCodeBlockProcessor("desmos-graph");
+                // Init plugin
+                plugin.onload().then(() => {
+                    // Fetch codeblock
+                    const proc = plugin.getCodeBlockProcessor("desmos-graph");
 
-                // Render graph
-                proc(`y=x`, document.getElementById("desmos-graph")).then(() => {
-                    console.log("done!");
-                    console.log(document.getElementById("desmos-graph")?.innerHTML);
+                    // Render graph
+                    proc(`y=x`, document.getElementById("desmos-graph")).then(() => {
+                        const svg = document.getElementById("desmos-graph")?.innerHTML;
+                        resolve(svg);
+                    });
                 });
             });
         });
+        await browser.close();
 
-        // await page.screenshot({ path: "example.png" });
-        // await browser.close();
+        console.log(svg);
     });
 });
-
-// import path from "path";
-// import { readFileSync } from "fs";
-
-// const plugin = readFileSync(path.join(__dirname, "main.js"));
-// console.log(plugin);
-
-// async function renderGraph(graph: Graph): Promise<void> {
-//     console.log(graph, Renderer);
-//     return /* todo */;
-// }
-
-// describe("renderer", () => {
-//     it("works", () => {
-//         renderGraph(new Graph([{ equation: "y=x" }], {}));
-//     });
-// });
