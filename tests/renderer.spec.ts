@@ -14,8 +14,8 @@ const TIMEOUT = 10000;
 //  this should only be set to `false` for debug purposes
 const HEADLESS = true;
 
-// A regex which can match the id values in the svg
-const ID_MATCHER = /id=".+?"/g;
+// A regex which can clean up the dynamic content of an svg
+const ID_MATCHER = /(id=".+?"|transform=".+?")/g;
 
 // Test html page with a div to render the graph into
 const TEST_PAGE = `<!DOCTYPE html><html><body><div id="desmos-graph"></div></body></html>`;
