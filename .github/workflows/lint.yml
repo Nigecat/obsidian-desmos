@@ -1,7 +1,9 @@
 name: Lint
+
 on: push
+
 jobs:
-  build:
+  lint:
     name: lint
     runs-on: ubuntu-latest
     steps:
