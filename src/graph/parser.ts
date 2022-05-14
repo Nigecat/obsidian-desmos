@@ -1,17 +1,19 @@
 import { ucast, calculateHash, Hash } from "../utils";
 import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
 
+
 /** The maximum dimensions of a graph */
 const MAX_SIZE = 99999;
 
 const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
-    width: 600,
-    height: 400,
+    width: "600px",
+    height: "400px",
     left: -10,
     right: 10,
     bottom: -7,
     top: 7,
     grid: true,
+    skipCache: false,
     degreeMode: DegreeMode.Radians,
 };
 
@@ -117,10 +119,10 @@ export class Graph {
     }
 
     private static validateSettings(settings: GraphSettings) {
+
         // Check graph is within maximum size
-        if ((settings.width && settings.width > MAX_SIZE) || (settings.height && settings.height > MAX_SIZE)) {
-            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
-        }
+        
+        //! I MOVED THE SIZE VALIDATION INTO THE PARSING STEP AS PART OF THE parseSize FUNCTION
 
         // Ensure boundaries are correct
         if (settings.left >= settings.right) {
@@ -133,6 +135,29 @@ export class Graph {
                 Top boundary (${settings.top}) must be greater than bottom boundary (${settings.bottom})
             `);
         }
+    }
+
+    private static parseSize(cssString: string):{value: string, isDynamic: boolean} {
+        console.log(cssString)
+        cssString = cssString.toString()
+        let index = cssString.search(/[A-Za-z%]/)
+        let number
+        
+        if (number && number > MAX_SIZE) {
+            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
+        }
+        let unit
+        if (index != -1) {
+            number = parseFloat(cssString.substring(0, index))
+            unit = cssString.substring(index)
+        } else {
+            // console.log(cssString)
+            number = parseFloat(cssString)
+            // console.log(number)
+            unit = "px"
+        }
+        console.log(number.toString() + unit)
+        return { value: number.toString() + unit, isDynamic: unit == "%" }
     }
 
     private static parseEquation(eq: string): ParseResult<Equation> {
@@ -240,6 +265,7 @@ export class Graph {
             // Extract key-value pairs by splitting on the `=` in each property
             .map((setting) => setting.split("="))
             .forEach((setting) => {
+                console.log(setting)
                 if (setting.length > 2) {
                     throw new SyntaxError(
                         `Too many segments, eaching setting must only contain a maximum of one '=' sign`
@@ -273,19 +299,32 @@ export class Graph {
                         break;
                     }
 
+                    case "skipCache": {
+                        graphSettings.skipCache = value ? (value.toLowerCase() == "true") : false
+                    }
+
                     // Integer fields
                     case "top":
                     case "bottom":
                     case "left":
-                    case "right":
-                    case "width":
-                    case "height": {
+                    case "right": {
                         requiresValue();
                         const num = parseFloat(value as string);
                         if (Number.isNaN(num)) {
                             throw new SyntaxError(`Field '${key}' must have an integer (or decimal) value`);
                         }
                         (graphSettings[key] as number) = num;
+                        break;
+                    }
+
+                    // String fields
+                    case "width":
+                    case "height": {
+                        if (value) {
+                            let validation = Graph.parseSize(value)
+                            graphSettings.skipCache = validation.isDynamic
+                            graphSettings[key] = validation.value
+                        }
                         break;
                     }
 
