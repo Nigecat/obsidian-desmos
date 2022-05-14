@@ -89,6 +89,14 @@ class RendererTester {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function generateSvg(id: string) {
+    const framework = await RendererTester.create();
+    const source = await fs.readFile(path.join(__dirname, "graphs", `${id}.source.txt`), { encoding: "utf-8" });
+    const svg = await framework.render(source);
+    await fs.writeFile(path.join(__dirname, "graphs", `${id}.svg`), svg);
+}
+
 describe("renderer", function () {
     this.timeout(TIMEOUT);
     this.slow(TIMEOUT / 2);
