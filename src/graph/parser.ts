@@ -138,7 +138,6 @@ export class Graph {
     }
 
     private static parseSize(cssString: string):{value: string, isDynamic: boolean} {
-        console.log(cssString)
         cssString = cssString.toString()
         let index = cssString.search(/[A-Za-z%]/)
         let number
@@ -151,12 +150,9 @@ export class Graph {
             number = parseFloat(cssString.substring(0, index))
             unit = cssString.substring(index)
         } else {
-            // console.log(cssString)
             number = parseFloat(cssString)
-            // console.log(number)
             unit = "px"
         }
-        console.log(number.toString() + unit)
         return { value: number.toString() + unit, isDynamic: unit == "%" }
     }
 
@@ -265,7 +261,6 @@ export class Graph {
             // Extract key-value pairs by splitting on the `=` in each property
             .map((setting) => setting.split("="))
             .forEach((setting) => {
-                console.log(setting)
                 if (setting.length > 2) {
                     throw new SyntaxError(
                         `Too many segments, eaching setting must only contain a maximum of one '=' sign`
