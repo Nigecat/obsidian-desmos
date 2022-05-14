@@ -1,0 +1,16 @@
+name: Format
+
+on: push
+
+jobs:
+  format:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v2
+
+     - name: Install dependencies
+       run: npm ci
+
+     - name: Run formatter
+       run: npm run fmt:check
