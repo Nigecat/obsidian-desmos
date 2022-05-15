@@ -270,6 +270,11 @@ export class Graph {
                 const key = setting[0].trim() as keyof GraphSettings;
                 const value = setting.length > 1 ? setting[1].trim() : undefined;
 
+                // Prevent duplicate keys
+                if (key in graphSettings) {
+                    throw new SyntaxError(`Duplicate key '${key}' not allowed`);
+                }
+
                 const requiresValue = () => {
                     if (value === undefined) {
                         throw new SyntaxError(`Field '${key}' must have a value`);
