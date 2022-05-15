@@ -261,6 +261,7 @@ export class Graph {
             // Extract key-value pairs by splitting on the `=` in each property
             .map((setting) => setting.split("="))
             .forEach((setting) => {
+                console.log(setting)
                 if (setting.length > 2) {
                     throw new SyntaxError(
                         `Too many segments, eaching setting must only contain a maximum of one '=' sign`
