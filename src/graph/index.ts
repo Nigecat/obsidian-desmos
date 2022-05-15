@@ -1,2 +1,2 @@
 export { Graph } from "./parser";
-export { GraphSettings, Equation, Color, LineStyle, PointStyle, DegreeMode } from "./interface";
+export { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";

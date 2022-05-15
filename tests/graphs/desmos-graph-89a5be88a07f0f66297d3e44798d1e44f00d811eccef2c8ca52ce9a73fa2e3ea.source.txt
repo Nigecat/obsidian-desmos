@@ -1,0 +1,17 @@
+height=200;
+bottom=-1; left=-4; right=4; top=6;
+---
+y=-x|-3<x<0|black
+y=-x+1|-2<x<1|black
+y=x|0<x<3|black
+y=x-1|1<x<3|black
+y=1|0<x<1|green
+y=-2x+1|green|-2<x<0
+y=2x-1|green|1<x<3
+
+(-3,3)|black
+(3,3)|black
+(-2,3)|black
+(3,2)|black
+(-2,5)|green
+(3,5)|green
