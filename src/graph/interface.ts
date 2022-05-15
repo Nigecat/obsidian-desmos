@@ -1,8 +1,8 @@
 export interface GraphSettings {
     /** The width of the rendered graoh */
-    width: string;
+    width: Size;
     /** The height of the rendered graph */
-    height: string;
+    height: Size;
     /** The left bound of the graph */
     left: number;
     /** The right bound of the graph */
@@ -22,6 +22,28 @@ export interface GraphSettings {
      */
     defaultColor?: Color;
 }
+
+export enum CSSUnit {
+    cm = "cm",
+    mm = "mm",
+    in = "in",
+    px = "px",
+    pt = "pt",
+    pc = "pc",
+    em = "em",
+    ch = "ch",
+    rem = "rem",
+    vw = "vw",
+    vh = "vh",
+    vmin = "vmin",
+    vmax = "vmax",
+    percent = "%"
+}
+
+export interface Size {
+    value: number,
+    unit: CSSUnit
+} 
 
 export enum DegreeMode {
     Radians = "RADIANS",

@@ -119,8 +119,8 @@ export class Renderer {
         //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
         const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
-            <div id="calculator-${hash}" style="width: ${graphSettings.width}; height: ${
-            graphSettings.height
+            <div id="calculator-${hash}" style="width: ${graphSettings.width.value.toString() + graphSettings.width.unit}; height: ${
+                graphSettings.height.value + graphSettings.height.unit
         };"></div>
             <script>
                 const options = {
@@ -168,17 +168,17 @@ export class Renderer {
         `;
         const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
 
-        const iframe = document.createElement("iframe");
+        const iframe = el.createEl("iframe");
         iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
-        iframe.width = graphSettings.width.toString();
-        iframe.height = graphSettings.height.toString();
+        iframe.width = graphSettings.width.value.toString() + graphSettings.width.unit;
+        iframe.height = graphSettings.height.value.toString() + graphSettings.height.unit;
         iframe.className = "desmos-graph";
         iframe.style.border = "none";
         iframe.scrolling = "no"; // fixme use a non-depreciated function
         iframe.srcdoc = htmlSrc;
         // iframe.style.display = "none"; // fixme hiding the iframe breaks the positioning
 
-        el.appendChild(iframe);
+        // el.appendChild(iframe);
 
         return new Promise((resolve) => this.rendering.set(hash, { graph, el, resolve, cacheFile }));
     }

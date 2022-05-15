@@ -1,13 +1,13 @@
 import { ucast, calculateHash, Hash } from "../utils";
-import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
+import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode, CSSUnit, Size } from "./interface";
 
 
 /** The maximum dimensions of a graph */
 const MAX_SIZE = 99999;
 
 const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
-    width: "600px",
-    height: "400px",
+    width: {value: 600, unit: CSSUnit.px},
+    height: {value: 400, unit: CSSUnit.px},
     left: -10,
     right: 10,
     bottom: -7,
@@ -20,6 +20,10 @@ const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
 const DEFAULT_GRAPH_WIDTH = Math.abs(DEFAULT_GRAPH_SETTINGS.left) + Math.abs(DEFAULT_GRAPH_SETTINGS.right);
 
 const DEFAULT_GRAPH_HEIGHT = Math.abs(DEFAULT_GRAPH_SETTINGS.bottom) + Math.abs(DEFAULT_GRAPH_SETTINGS.top);
+
+export const RelativeCSSUnit = [
+    CSSUnit.em, CSSUnit.ch, CSSUnit.rem, CSSUnit.vw, CSSUnit.vh, CSSUnit.vmin, CSSUnit.vmax, CSSUnit.percent
+]
 
 export interface PotentialErrorHint {
     view: HTMLSpanElement;
@@ -119,10 +123,13 @@ export class Graph {
     }
 
     private static validateSettings(settings: GraphSettings) {
-
         // Check graph is within maximum size
         
-        //! I MOVED THE SIZE VALIDATION INTO THE PARSING STEP AS PART OF THE parseSize FUNCTION
+
+                        
+        if (settings.height.value > MAX_SIZE || settings.width.value > MAX_SIZE) {
+            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
+        }
 
         // Ensure boundaries are correct
         if (settings.left >= settings.right) {
@@ -135,25 +142,6 @@ export class Graph {
                 Top boundary (${settings.top}) must be greater than bottom boundary (${settings.bottom})
             `);
         }
-    }
-
-    private static parseSize(cssString: string):{value: string, isDynamic: boolean} {
-        cssString = cssString.toString()
-        let index = cssString.search(/[A-Za-z%]/)
-        let number
-        
-        if (number && number > MAX_SIZE) {
-            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
-        }
-        let unit
-        if (index != -1) {
-            number = parseFloat(cssString.substring(0, index))
-            unit = cssString.substring(index)
-        } else {
-            number = parseFloat(cssString)
-            unit = "px"
-        }
-        return { value: number.toString() + unit, isDynamic: unit == "%" }
     }
 
     private static parseEquation(eq: string): ParseResult<Equation> {
@@ -300,7 +288,7 @@ export class Graph {
                     }
 
                     case "skipCache": {
-                        graphSettings.skipCache = value ? (value.toLowerCase() == "true") : false
+                        break;
                     }
 
                     // Integer fields
@@ -317,14 +305,26 @@ export class Graph {
                         break;
                     }
 
-                    // String fields
+                    // Size fields
                     case "width":
                     case "height": {
-                        if (value) {
-                            let validation = Graph.parseSize(value)
-                            graphSettings.skipCache = validation.isDynamic
-                            graphSettings[key] = validation.value
+                        requiresValue()
+
+                        //search for unit
+                        let index = (value as string).search(/[A-Za-z%]/)
+                        let size = {value: 0, unit: CSSUnit.px} as Size
+                        if (index != -1) {
+                            size.value = parseFloat((value as string).substring(0, index))
+                            let unit = (value as string).substring(index)
+                            if (Object.values<string>(CSSUnit).includes(unit)) {
+                                size.unit = unit as CSSUnit
+                            }
+                        } else {
+                            size.value = parseFloat((value as string))
                         }
+                        graphSettings[key] = size
+                        let isDynamic = RelativeCSSUnit.contains(size.unit)
+                        graphSettings.skipCache = isDynamic ? isDynamic : graphSettings.skipCache
                         break;
                     }
 
