@@ -23,13 +23,16 @@ export interface GraphSettings {
     defaultColor?: Color;
 }
 
-export enum CSSUnit {
+export enum AbsoluteCSSUnit {
     cm = "cm",
     mm = "mm",
     in = "in",
     px = "px",
     pt = "pt",
-    pc = "pc",
+    pc = "pc"
+}
+
+export enum RelativeCSSUnit {
     em = "em",
     ch = "ch",
     rem = "rem",
@@ -39,6 +42,8 @@ export enum CSSUnit {
     vmax = "vmax",
     percent = "%"
 }
+
+export type CSSUnit = AbsoluteCSSUnit | RelativeCSSUnit
 
 export interface Size {
     value: number,

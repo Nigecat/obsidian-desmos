@@ -168,7 +168,7 @@ export class Renderer {
         `;
         const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
 
-        const iframe = el.createEl("iframe");
+        const iframe = document.createElement("iframe");
         iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
         iframe.width = graphSettings.width.value.toString() + graphSettings.width.unit;
         iframe.height = graphSettings.height.value.toString() + graphSettings.height.unit;
@@ -178,7 +178,7 @@ export class Renderer {
         iframe.srcdoc = htmlSrc;
         // iframe.style.display = "none"; // fixme hiding the iframe breaks the positioning
 
-        // el.appendChild(iframe);
+        el.appendChild(iframe);
 
         return new Promise((resolve) => this.rendering.set(hash, { graph, el, resolve, cacheFile }));
     }

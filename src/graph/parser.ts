@@ -1,13 +1,13 @@
 import { ucast, calculateHash, Hash } from "../utils";
-import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode, CSSUnit, Size } from "./interface";
+import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode, CSSUnit, Size, AbsoluteCSSUnit, RelativeCSSUnit } from "./interface";
 
 
 /** The maximum dimensions of a graph */
 const MAX_SIZE = 99999;
 
 const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
-    width: {value: 600, unit: CSSUnit.px},
-    height: {value: 400, unit: CSSUnit.px},
+    width: {value: 600, unit: AbsoluteCSSUnit.px},
+    height: {value: 400, unit: AbsoluteCSSUnit.px},
     left: -10,
     right: 10,
     bottom: -7,
@@ -20,10 +20,6 @@ const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
 const DEFAULT_GRAPH_WIDTH = Math.abs(DEFAULT_GRAPH_SETTINGS.left) + Math.abs(DEFAULT_GRAPH_SETTINGS.right);
 
 const DEFAULT_GRAPH_HEIGHT = Math.abs(DEFAULT_GRAPH_SETTINGS.bottom) + Math.abs(DEFAULT_GRAPH_SETTINGS.top);
-
-export const RelativeCSSUnit = [
-    CSSUnit.em, CSSUnit.ch, CSSUnit.rem, CSSUnit.vw, CSSUnit.vh, CSSUnit.vmin, CSSUnit.vmax, CSSUnit.percent
-]
 
 export interface PotentialErrorHint {
     view: HTMLSpanElement;
@@ -302,26 +298,33 @@ export class Graph {
                         break;
                     }
 
-                    // Size fields
+                    // Size field
                     case "width":
                     case "height": {
                         requiresValue()
 
                         //search for unit
                         let index = (value as string).search(/[A-Za-z%]/)
-                        let size = {value: 0, unit: CSSUnit.px} as Size
+                        let size = {value: 0, unit: AbsoluteCSSUnit.px} as Size
                         if (index != -1) {
                             size.value = parseFloat((value as string).substring(0, index))
                             let unit = (value as string).substring(index)
-                            if (Object.values<string>(CSSUnit).includes(unit)) {
-                                size.unit = unit as CSSUnit
+                            let parseUnit = parseStringToEnum(AbsoluteCSSUnit, unit)
+                            if (parseUnit) {
+                                size.unit = parseUnit as CSSUnit
+                            } else {
+                                parseUnit = parseStringToEnum(RelativeCSSUnit, unit)
+                                if (parseUnit) {
+                                    size.unit = parseUnit as CSSUnit
+                                    graphSettings.skipCache = true
+                                } else {
+                                    throw new SyntaxError(`Unit '${unit}' must be a valid CSS Unit`);
+                                }
                             }
                         } else {
                             size.value = parseFloat((value as string))
                         }
                         graphSettings[key] = size
-                        let isDynamic = RelativeCSSUnit.contains(size.unit)
-                        graphSettings.skipCache = isDynamic ? isDynamic : graphSettings.skipCache
                         break;
                     }
 
