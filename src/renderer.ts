@@ -53,7 +53,7 @@ export class Renderer {
         let cacheFile: string | undefined;
 
         // If this graph is in the cache then fetch it
-        if (settings.cache.enabled) {
+        if (settings.cache.enabled && !graph.settings.skipCache ) {
             if (settings.cache.location === CacheLocation.Memory && hash in plugin.graphCache) {
                 const data = plugin.graphCache[hash];
                 el.appendChild(parseSVG(data));
@@ -119,9 +119,9 @@ export class Renderer {
         //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
         const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
-            <div id="calculator-${hash}" style="width: ${graphSettings.width}px; height: ${
+            <div id="calculator-${hash}" style="width: ${graphSettings.width}; height: ${
             graphSettings.height
-        }px;"></div>
+        };"></div>
             <script>
                 const options = {
                     settingsMenu: false,
