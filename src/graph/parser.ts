@@ -124,9 +124,6 @@ export class Graph {
 
     private static validateSettings(settings: GraphSettings) {
         // Check graph is within maximum size
-        
-
-                        
         if (settings.height.value > MAX_SIZE || settings.width.value > MAX_SIZE) {
             throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
         }

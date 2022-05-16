@@ -1,3 +1,0 @@
-```desmos-graph
-y=x
-```
