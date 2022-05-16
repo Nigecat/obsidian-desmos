@@ -90,3 +90,14 @@ y=0|yellow
 (0,0)|label:(0,0)
 (5,4)|open|label:This is a label
 ```
+
+```desmos-graph
+top=20; right=20;
+---
+\polygon((0,0),(10,0),(10,10),(0,10))|purple
+\polygon((10,0),(0,10),(20,20))|green
+```
+
+```desmos-graph
+\mod(x^2,x)
+```

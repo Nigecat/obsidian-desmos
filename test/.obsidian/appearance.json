@@ -1,7 +1,5 @@
 {
   "baseFontSize": 16,
   "cssTheme": "Atom",
-  "enabledCssSnippets": [
-    "center"
-  ]
+  "enabledCssSnippets": []
 }
