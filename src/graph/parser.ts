@@ -2,6 +2,7 @@ import { ucast, calculateHash, Hash } from "../utils";
 import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode, CSSUnit, Size, AbsoluteCSSUnit, RelativeCSSUnit } from "./interface";
 
 
+
 /** The maximum dimensions of a graph */
 const MAX_SIZE = 99999;
 
@@ -119,6 +120,7 @@ export class Graph {
     }
 
     private static validateSettings(settings: GraphSettings) {
+
         // Check graph is within maximum size
         if (settings.height.value > MAX_SIZE || settings.width.value > MAX_SIZE) {
             throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
@@ -135,6 +137,25 @@ export class Graph {
                 Top boundary (${settings.top}) must be greater than bottom boundary (${settings.bottom})
             `);
         }
+    }
+
+    private static parseSize(cssString: string):{value: string, isDynamic: boolean} {
+        cssString = cssString.toString()
+        let index = cssString.search(/[A-Za-z%]/)
+        let number
+        
+        if (number && number > MAX_SIZE) {
+            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
+        }
+        let unit
+        if (index != -1) {
+            number = parseFloat(cssString.substring(0, index))
+            unit = cssString.substring(index)
+        } else {
+            number = parseFloat(cssString)
+            unit = "px"
+        }
+        return { value: number.toString() + unit, isDynamic: unit == "%" }
     }
 
     private static parseEquation(eq: string): ParseResult<Equation> {
