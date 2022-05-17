@@ -7,8 +7,8 @@ import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, D
 const MAX_SIZE = 99999;
 
 const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
-    width: {value: 600, unit: AbsoluteCSSUnit.px},
-    height: {value: 400, unit: AbsoluteCSSUnit.px},
+    width: { value: 600, unit: AbsoluteCSSUnit.px },
+    height: { value: 400, unit: AbsoluteCSSUnit.px },
     left: -10,
     right: 10,
     bottom: -7,
@@ -139,11 +139,11 @@ export class Graph {
         }
     }
 
-    private static parseSize(cssString: string):{value: string, isDynamic: boolean} {
+    private static parseSize(cssString: string): { value: string, isDynamic: boolean } {
         cssString = cssString.toString()
         let index = cssString.search(/[A-Za-z%]/)
         let number
-        
+
         if (number && number > MAX_SIZE) {
             throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
         }
@@ -326,7 +326,7 @@ export class Graph {
 
                         //search for unit
                         let index = (value as string).search(/[A-Za-z%]/)
-                        let size = {value: 0, unit: AbsoluteCSSUnit.px} as Size
+                        let size = { value: 0, unit: AbsoluteCSSUnit.px } as Size
                         if (index != -1) {
                             size.value = parseFloat((value as string).substring(0, index))
                             let unit = (value as string).substring(index)

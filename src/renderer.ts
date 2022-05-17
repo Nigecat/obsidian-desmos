@@ -53,7 +53,7 @@ export class Renderer {
         let cacheFile: string | undefined;
 
         // If this graph is in the cache then fetch it
-        if (settings.cache.enabled && !graph.settings.skipCache ) {
+        if (settings.cache.enabled && !graph.settings.skipCache) {
             if (settings.cache.location === CacheLocation.Memory && hash in plugin.graphCache) {
                 const data = plugin.graphCache[hash];
                 el.appendChild(parseSVG(data));
@@ -119,9 +119,8 @@ export class Renderer {
         //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
         const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
-            <div id="calculator-${hash}" style="width: ${graphSettings.width.value.toString() + graphSettings.width.unit}; height: ${
-                graphSettings.height.value + graphSettings.height.unit
-        };"></div>
+            <div id="calculator-${hash}" style="width: ${graphSettings.width.value.toString() + graphSettings.width.unit}; height: ${graphSettings.height.value + graphSettings.height.unit
+            };"></div>
             <script>
                 const options = {
                     settingsMenu: false,
@@ -150,9 +149,8 @@ export class Renderer {
                         for (const id in calculator.expressionAnalysis) {
                             const analysis = calculator.expressionAnalysis[id];
                             if (analysis.isError) {
-                                parent.postMessage({ t: "desmos-graph", d: "error", o: "${
-                                    window.origin
-                                }", data: analysis.errorMessage, hash: "${hash}" }, "${window.origin}");
+                                parent.postMessage({ t: "desmos-graph", d: "error", o: "${window.origin
+            }", data: analysis.errorMessage, hash: "${hash}" }, "${window.origin}");
                             }
                         }
                     });
@@ -160,9 +158,8 @@ export class Renderer {
 
                 calculator.asyncScreenshot({ showLabels: true, format: "svg" }, (data) => {
                     document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", d: "render", o: "${
-                        window.origin
-                    }", data, hash: "${hash}" }, "${window.origin}");
+                    parent.postMessage({ t: "desmos-graph", d: "render", o: "${window.origin
+            }", data, hash: "${hash}" }, "${window.origin}");
                 });
             </script>
         `;

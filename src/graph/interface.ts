@@ -48,7 +48,7 @@ export type CSSUnit = AbsoluteCSSUnit | RelativeCSSUnit
 export interface Size {
     value: number,
     unit: CSSUnit
-} 
+}
 
 export enum DegreeMode {
     Radians = "RADIANS",
