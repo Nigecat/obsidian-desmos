@@ -119,7 +119,7 @@ export class Renderer {
         //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
         const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
-            <div id="calculator-${hash}" style="width: ${graphSettings.width.value.toString() + graphSettings.width.unit}; height: ${graphSettings.height.value + graphSettings.height.unit
+            <div id="calculator-${hash}" style="width: ${graphSettings.width.value + graphSettings.width.unit}; height: ${graphSettings.height.value + graphSettings.height.unit
             };"></div>
             <script>
                 const options = {
@@ -167,8 +167,8 @@ export class Renderer {
 
         const iframe = document.createElement("iframe");
         iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
-        iframe.width = graphSettings.width.value.toString() + graphSettings.width.unit;
-        iframe.height = graphSettings.height.value.toString() + graphSettings.height.unit;
+        iframe.width = graphSettings.width.value + graphSettings.width.unit;
+        iframe.height = graphSettings.height.value + graphSettings.height.unit;
         iframe.className = "desmos-graph";
         iframe.style.border = "none";
         iframe.scrolling = "no"; // fixme use a non-depreciated function

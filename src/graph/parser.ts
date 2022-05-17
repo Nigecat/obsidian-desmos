@@ -139,25 +139,6 @@ export class Graph {
         }
     }
 
-    private static parseSize(cssString: string): { value: string, isDynamic: boolean } {
-        cssString = cssString.toString()
-        let index = cssString.search(/[A-Za-z%]/)
-        let number
-
-        if (number && number > MAX_SIZE) {
-            throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
-        }
-        let unit
-        if (index != -1) {
-            number = parseFloat(cssString.substring(0, index))
-            unit = cssString.substring(index)
-        } else {
-            number = parseFloat(cssString)
-            unit = "px"
-        }
-        return { value: number.toString() + unit, isDynamic: unit == "%" }
-    }
-
     private static parseEquation(eq: string): ParseResult<Equation> {
         let hint;
 
@@ -301,10 +282,6 @@ export class Graph {
                         break;
                     }
 
-                    case "skipCache": {
-                        break;
-                    }
-
                     // Integer fields
                     case "top":
                     case "bottom":
@@ -329,6 +306,9 @@ export class Graph {
                         let size = { value: 0, unit: AbsoluteCSSUnit.px } as Size
                         if (index != -1) {
                             size.value = parseFloat((value as string).substring(0, index))
+                            if (isNaN(size.value)) {
+                                throw new SyntaxError(`Field '${key}' must have an integer (or decimal) value`);
+                            }
                             let unit = (value as string).substring(index)
                             let parseUnit = parseStringToEnum(AbsoluteCSSUnit, unit)
                             if (parseUnit) {
@@ -339,7 +319,7 @@ export class Graph {
                                     size.unit = parseUnit as CSSUnit
                                     graphSettings.skipCache = true
                                 } else {
-                                    throw new SyntaxError(`Unit '${unit}' must be a valid CSS Unit`);
+                                    throw new SyntaxError(`Unit '${unit}' must be a valid CSS unit`);
                                 }
                             }
                         } else {
