@@ -33,6 +33,11 @@ function parseStringToEnum<V, T extends { [key: string]: V }>(obj: T, key: strin
     return objKey ? obj[objKey] : null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function parseStringAsEnum<T extends { [key: string]: string }>(obj: T, value: string): string | null {
+    return Object.values(obj).find((v) => v.toUpperCase() === value.toUpperCase()) ?? null;
+}
+
 function parseColor(value: string): Color | null {
     // If the value is a valid hex colour
     if (value.startsWith("#")) {
