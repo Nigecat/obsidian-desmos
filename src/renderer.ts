@@ -119,8 +119,7 @@ export class Renderer {
         //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
         const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
-            <div id="calculator-${hash}" style="width: ${graphSettings.width.value + graphSettings.width.unit}; height: ${graphSettings.height.value + graphSettings.height.unit
-            };"></div>
+            <div id="calculator-${hash}" style="width: 100%; height: ${graphSettings.height.value + graphSettings.height.unit};"></div>
             <script>
                 const options = {
                     settingsMenu: false,
@@ -158,12 +157,13 @@ export class Renderer {
 
                 calculator.asyncScreenshot({ showLabels: true, format: "svg" }, (data) => {
                     document.body.innerHTML = "";
-                    parent.postMessage({ t: "desmos-graph", d: "render", o: "${window.origin
-            }", data, hash: "${hash}" }, "${window.origin}");
+                    parent.postMessage({ t: "desmos-graph", d: "render", o: "${
+                        window.origin
+                    }", data, hash: "${hash}" }, "${window.origin}");
                 });
             </script>
         `;
-        const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
+        const htmlSrc = `<html><head>${htmlHead}</head><body style="margin: 0">${htmlBody}</body>`;
 
         const iframe = document.createElement("iframe");
         iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
