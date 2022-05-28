@@ -119,7 +119,7 @@ export class Renderer {
         //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
         const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
-            <div id="calculator-${hash}" style="width: 100%; height: ${graphSettings.height.value + graphSettings.height.unit};"></div>
+            <div id="calculator-${hash}" style="height: ${graphSettings.height.value + graphSettings.height.unit};"></div>
             <script>
                 const options = {
                     settingsMenu: false,
