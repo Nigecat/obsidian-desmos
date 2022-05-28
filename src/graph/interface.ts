@@ -1,8 +1,8 @@
 export interface GraphSettings {
     /** The width of the rendered graoh */
-    width: number;
+    width: Size;
     /** The height of the rendered graph */
-    height: number;
+    height: Size;
     /** The left bound of the graph */
     left: number;
     /** The right bound of the graph */
@@ -15,10 +15,39 @@ export interface GraphSettings {
     grid: boolean;
     /** The degree mode to use for trigenometry functions, defaults to `radians` */
     degreeMode: DegreeMode;
+    /** The option to skip the cache in order for dynamically sized svgs to properly render */
+    skipCache: boolean;
     /** The default color to set all equations to.
      *  If this is not specified, each equation will be a random {@link ColorConstant} (assigned by Desmos).
      */
     defaultColor?: Color;
+}
+
+export enum AbsoluteCSSUnit {
+    cm = "cm",
+    mm = "mm",
+    in = "in",
+    px = "px",
+    pt = "pt",
+    pc = "pc"
+}
+
+export enum RelativeCSSUnit {
+    em = "em",
+    ch = "ch",
+    rem = "rem",
+    vw = "vw",
+    vh = "vh",
+    vmin = "vmin",
+    vmax = "vmax",
+    percent = "%"
+}
+
+export type CSSUnit = AbsoluteCSSUnit | RelativeCSSUnit
+
+export interface Size {
+    value: number,
+    unit: CSSUnit
 }
 
 export enum DegreeMode {

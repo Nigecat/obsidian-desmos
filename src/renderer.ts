@@ -53,7 +53,7 @@ export class Renderer {
         let cacheFile: string | undefined;
 
         // If this graph is in the cache then fetch it
-        if (settings.cache.enabled) {
+        if (settings.cache.enabled && !graph.settings.skipCache) {
             if (settings.cache.location === CacheLocation.Memory && hash in plugin.graphCache) {
                 const data = plugin.graphCache[hash];
                 el.appendChild(parseSVG(data));
@@ -119,9 +119,7 @@ export class Renderer {
         //   (the script gets cached by electron the first time it's used so this isn't a particularly high priority)
         const htmlHead = `<script src="https://www.desmos.com/api/v1.6/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
-            <div id="calculator-${hash}" style="width: ${graphSettings.width}px; height: ${
-            graphSettings.height
-        }px;"></div>
+            <div id="calculator-${hash}" style="height: ${graphSettings.height.value + graphSettings.height.unit};"></div>
             <script>
                 const options = {
                     settingsMenu: false,
@@ -150,9 +148,8 @@ export class Renderer {
                         for (const id in calculator.expressionAnalysis) {
                             const analysis = calculator.expressionAnalysis[id];
                             if (analysis.isError) {
-                                parent.postMessage({ t: "desmos-graph", d: "error", o: "${
-                                    window.origin
-                                }", data: analysis.errorMessage, hash: "${hash}" }, "${window.origin}");
+                                parent.postMessage({ t: "desmos-graph", d: "error", o: "${window.origin
+            }", data: analysis.errorMessage, hash: "${hash}" }, "${window.origin}");
                             }
                         }
                     });
@@ -166,12 +163,12 @@ export class Renderer {
                 });
             </script>
         `;
-        const htmlSrc = `<html><head>${htmlHead}</head><body>${htmlBody}</body>`;
+        const htmlSrc = `<html><head>${htmlHead}</head><body style="margin: 0">${htmlBody}</body>`;
 
         const iframe = document.createElement("iframe");
         iframe.sandbox.add("allow-scripts"); // enable sandbox mode - this prevents any xss exploits from an untrusted source in the frame (and prevents it from accessing the parent)
-        iframe.width = graphSettings.width.toString();
-        iframe.height = graphSettings.height.toString();
+        iframe.width = graphSettings.width.value + graphSettings.width.unit;
+        iframe.height = graphSettings.height.value + graphSettings.height.unit;
         iframe.className = "desmos-graph";
         iframe.style.border = "none";
         iframe.scrolling = "no"; // fixme use a non-depreciated function

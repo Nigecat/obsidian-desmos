@@ -1,17 +1,20 @@
 import { ucast, calculateHash, Hash } from "../utils";
-import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
+import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode, CSSUnit, Size, AbsoluteCSSUnit, RelativeCSSUnit } from "./interface";
+
+
 
 /** The maximum dimensions of a graph */
 const MAX_SIZE = 99999;
 
 const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
-    width: 600,
-    height: 400,
+    width: { value: 600, unit: AbsoluteCSSUnit.px },
+    height: { value: 400, unit: AbsoluteCSSUnit.px },
     left: -10,
     right: 10,
     bottom: -7,
     top: 7,
     grid: true,
+    skipCache: false,
     degreeMode: DegreeMode.Radians,
 };
 
@@ -117,8 +120,9 @@ export class Graph {
     }
 
     private static validateSettings(settings: GraphSettings) {
+
         // Check graph is within maximum size
-        if ((settings.width && settings.width > MAX_SIZE) || (settings.height && settings.height > MAX_SIZE)) {
+        if (settings.height.value > MAX_SIZE || settings.width.value > MAX_SIZE) {
             throw new SyntaxError(`Graph size outside of accepted bounds (must be <${MAX_SIZE}x${MAX_SIZE})`);
         }
 
@@ -282,15 +286,46 @@ export class Graph {
                     case "top":
                     case "bottom":
                     case "left":
-                    case "right":
-                    case "width":
-                    case "height": {
+                    case "right": {
                         requiresValue();
                         const num = parseFloat(value as string);
                         if (Number.isNaN(num)) {
                             throw new SyntaxError(`Field '${key}' must have an integer (or decimal) value`);
                         }
                         (graphSettings[key] as number) = num;
+                        break;
+                    }
+
+                    // Size field
+                    case "width":
+                    case "height": {
+                        requiresValue()
+
+                        //search for unit
+                        let index = (value as string).search(/[A-Za-z%]/)
+                        let size = { value: 0, unit: AbsoluteCSSUnit.px } as Size
+                        if (index != -1) {
+                            size.value = parseFloat((value as string).substring(0, index))
+                            if (isNaN(size.value)) {
+                                throw new SyntaxError(`Field '${key}' must have an integer (or decimal) value`);
+                            }
+                            let unit = (value as string).substring(index)
+                            let parseUnit = parseStringToEnum(AbsoluteCSSUnit, unit)
+                            if (parseUnit) {
+                                size.unit = parseUnit as CSSUnit
+                            } else {
+                                parseUnit = parseStringToEnum(RelativeCSSUnit, unit)
+                                if (parseUnit) {
+                                    size.unit = parseUnit as CSSUnit
+                                    graphSettings.skipCache = true
+                                } else {
+                                    throw new SyntaxError(`Unit '${unit}' must be a valid CSS unit`);
+                                }
+                            }
+                        } else {
+                            size.value = parseFloat((value as string))
+                        }
+                        graphSettings[key] = size
                         break;
                     }
 
