@@ -106,7 +106,6 @@ top=20; right=20;
 grid=false; hideAxisNumbers;
 left=-1; bottom=-1;
 width=400;
-
 ---
 y=x|0<x<6|blue
 x=6|0<y<6|blue
