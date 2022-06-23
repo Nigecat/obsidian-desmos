@@ -109,13 +109,16 @@ describe("parser", () => {
             });
 
             it("label", () => {
-                const graph = parseGraph({ equation: "y=x|label:A straight line with a gradient of 1" });
+                let graph = parseGraph({ equation: "y=x|label:A straight line with a gradient of 1" });
                 expect(graph.equations).to.deep.equal([
                     {
                         equation: "y=x",
                         label: "A straight line with a gradient of 1",
                     },
                 ]);
+
+                graph = parseGraph({ equation: "(1, 2)|label" });
+                expect(graph.equations).to.deep.equal([{ equation: "(1, 2)", label: "" }]);
             });
 
             it("combined", () => {
