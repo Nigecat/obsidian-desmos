@@ -129,6 +129,8 @@ export class Renderer {
                     lockViewPort: true,
                     zoomButtons: false,
                     trace: false,
+                    xAxisNumbers: ${!graphSettings.hideAxisNumbers},
+                    yAxisNumbers: ${!graphSettings.hideAxisNumbers},
                     showGrid: ${graphSettings.grid},
                     // Desmos takes a value of 'false' for radians and 'true' for degrees
                     degreeMode: ${graphSettings.degreeMode === DegreeMode.Degrees},

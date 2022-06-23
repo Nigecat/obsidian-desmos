@@ -15,6 +15,8 @@ export interface GraphSettings {
     grid: boolean;
     /** The degree mode to use for trigenometry functions, defaults to `radians` */
     degreeMode: DegreeMode;
+    /** Whether to hide all axis numbers, defaults to `false` */
+    hideAxisNumbers: boolean;
     /** The default color to set all equations to.
      *  If this is not specified, each equation will be a random {@link ColorConstant} (assigned by Desmos).
      */
