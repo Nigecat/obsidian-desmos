@@ -111,3 +111,12 @@ y=x|0<x<6|blue
 x=6|0<y<6|blue
 y=0|0<x<6|blue
 ```
+
+```desmos-graph
+xAxisLabel=this is the x-axis;
+yAxisLabel=<--that's the x axis!____;
+grid=false;
+---
+y=x
+y=-x^2
+```
