@@ -14,12 +14,17 @@ export default class Desmos extends Plugin {
     /** Helper for in-memory graph caching */
     graphCache: Record<string, string> = {};
 
+    // Map to store user specified colors
+    customColorsArray!: string[][];
+
     async onload() {
         await this.loadSettings();
         this.renderer = new Renderer(this);
         this.renderer.activate();
 
         this.addSettingTab(new SettingsTab(this.app, this));
+        
+        this.loadCustomColors();
 
         this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
             try {
@@ -58,5 +63,22 @@ export default class Desmos extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+    }
+
+    async loadCustomColors() {
+        var colors:string = this.settings.customColors.slice(0, -1)
+
+        while(colors.slice(-1) == "\n"){
+            colors = colors.slice(0,-1)
+        }
+
+        // split array into key value pairs
+        this.customColorsArray = colors.split("\n").map(item =>
+            item.split(":").map(item =>
+                item.trim()
+            )
+        );
+
+        Graph.customColors = this.customColorsArray;
     }
 }
