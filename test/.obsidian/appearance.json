@@ -1,5 +1,6 @@
 {
   "baseFontSize": 16,
   "cssTheme": "Atom",
-  "enabledCssSnippets": []
+  "enabledCssSnippets": [],
+  "accentColor": ""
 }

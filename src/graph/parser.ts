@@ -289,6 +289,14 @@ export class Graph {
                         break;
                     }
 
+                    // String fields
+                    case "xAxisLabel":
+                    case "yAxisLabel": {
+                        requiresValue();
+                        graphSettings[key] = value;
+                        break;
+                    }
+
                     // Integer fields
                     case "top":
                     case "bottom":

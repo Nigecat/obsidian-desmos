@@ -1,0 +1,6 @@
+xAxisLabel=this is the x-axis;
+yAxisLabel=<--that's the x axis!____;
+grid=false;
+---
+y=x
+y=-x^2
