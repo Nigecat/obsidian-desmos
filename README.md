@@ -84,7 +84,21 @@ The valid colors are (case-insensitive):
  - `ORANGE`
  - `BLACK`
  - `WHITE`
- - Any hex color code beginning with `#` (e.g `#42ddf5`)  
+ - Any hex color code beginning with `#` (e.g `#42ddf5`) 
+
+Custom colors can be configured in the addon settings. By default, the custom colors are configured to have the same colors available on the Desmos web-client. Custom colors are configured as follows:
+```
+    ColorName: #ColorValue
+    Red: #FF0000
+```
+Custom colors can be used by afixing `--` in front of the custom color spacing. 
+```
+    ```desmos-graph
+    x=2|--red
+    ```
+```
+
+Note that a graph may have either a preset color or a custom color, but may not have both.
 
 Note that the default color can be set by using the `defaultColor` field in the graph settings. This field follows the same format.
 
@@ -117,6 +131,11 @@ For example, if we wanted to create a straight green dashed line of `x=2` with a
 ````
     ```desmos-graph
     x=2|dashed|green|y>0
+    ```
+````
+````
+    ```desmos-graph
+    x=2|dashed|--orange|y>0
     ```
 ````
 (you get the idea)  
