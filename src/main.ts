@@ -23,7 +23,7 @@ export default class Desmos extends Plugin {
         this.renderer.activate();
 
         this.addSettingTab(new SettingsTab(this.app, this));
-        
+
         this.loadCustomColors();
 
         this.registerMarkdownCodeBlockProcessor("desmos-graph", async (source, el) => {
@@ -66,18 +66,14 @@ export default class Desmos extends Plugin {
     }
 
     async loadCustomColors() {
-        var colors:string = this.settings.customColors.slice(0, -1)
+        var colors: string = this.settings.customColors.slice(0, -1);
 
-        while(colors.slice(-1) == "\n"){
-            colors = colors.slice(0,-1)
+        while (colors.slice(-1) == "\n") {
+            colors = colors.slice(0, -1);
         }
 
         // split array into key value pairs
-        this.customColorsArray = colors.split("\n").map(item =>
-            item.split(":").map(item =>
-                item.trim()
-            )
-        );
+        this.customColorsArray = colors.split("\n").map((item) => item.split(":").map((item) => item.trim()));
 
         Graph.customColors = this.customColorsArray;
     }

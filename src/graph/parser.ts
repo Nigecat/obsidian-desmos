@@ -41,12 +41,12 @@ function parseColor(value: string, colors: string[][] | undefined): Color | null
         if (/^[0-9a-zA-Z]+$/.test(value.slice(1))) {
             return value as Color;
         }
-    // Check if custom color
-    }else if(value.startsWith("--") && colors != undefined){
+        // Check if custom color
+    } else if (value.startsWith("--") && colors != undefined) {
         value = value.slice(2);
-        var color:string[] | undefined = colors.find(obj => obj[0] == value);
+        var color: string[] | undefined = colors.find((obj) => obj[0] == value);
         // Check that custom color exists
-        if (color != undefined){
+        if (color != undefined) {
             // Ensure the rest of the value is a valid alphanumeric string
             if (/^[0-9a-zA-Z]+$/.test(color[1].slice(1))) {
                 return color[1] as Color;

@@ -27,12 +27,13 @@ const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
         enabled: true,
         location: CacheLocation.Memory,
     },
-    customColors: "red: #c74440\n"+
-                   "blue: #2d70b3\n"+
-                   "green: #388c46\n"+
-                   "orange: #fa7e19\n"+
-                   "purple: #6042a6\n"+
-                   "black: #000000\n      "
+    customColors:
+        "red: #c74440\n" +
+        "blue: #2d70b3\n" +
+        "green: #388c46\n" +
+        "orange: #fa7e19\n" +
+        "purple: #6042a6\n" +
+        "black: #000000\n      ",
 };
 
 /** Get the default settings for the given plugin. This simply uses `DEFAULT_SETTINGS_STATIC` and patches the version from the manifest. */
@@ -117,37 +118,34 @@ export class SettingsTab extends PluginSettingTab {
                         text.setValue(this.plugin.settings.cache.directory ?? "").onChange(async (value) => {
                             this.plugin.settings.cache.directory = value;
                             await this.plugin.saveSettings();
-
                         });
                     });
             }
         }
-        
+
         new Setting(containerEl)
             .setName("Custom Color Names")
-            .setDesc("Path leading to custom colors file. Custom colors should be organised in \"Name, ColorValue\" pairs.\
-                In order to use a custom color, add \"|--Name\" to any graph.")
+            .setDesc(
+                'Path leading to custom colors file. Custom colors should be organised in "Name, ColorValue" pairs.\
+                In order to use a custom color, add "|--Name" to any graph.'
+            )
             .setClass("text-snippets-class")
-            .addTextArea((text) => text
-                .setValue(this.plugin.settings.customColors)
-                .onChange(async (value) => {
+            .addTextArea((text) =>
+                text.setValue(this.plugin.settings.customColors).onChange(async (value) => {
                     this.plugin.settings.customColors = value;
-                    
+
                     // Remove trailing newlines
-                    while(value.slice(-1) == "\n"){
-                        value = value.slice(0,-1)
+                    while (value.slice(-1) == "\n") {
+                        value = value.slice(0, -1);
                     }
 
                     // split array into key value pairs
-                    this.plugin.customColorsArray = value.split("\n").map(item =>
-                        item.split(":").map(item =>
-                            item.trim()
-                        )
-                    );
+                    this.plugin.customColorsArray = value
+                        .split("\n")
+                        .map((item) => item.split(":").map((item) => item.trim()));
 
                     await this.plugin.saveSettings();
                 })
             );
     }
 }
-
