@@ -17,6 +17,10 @@ export interface GraphSettings {
     degreeMode: DegreeMode;
     /** Whether to hide all axis numbers, defaults to `false` */
     hideAxisNumbers: boolean;
+    /** The label placed below x axis */
+    xAxisLabel?: string;
+    /** The label placed beside the y axis */
+    yAxisLabel?: string;
     /** The default color to set all equations to.
      *  If this is not specified, each equation will be a random {@link ColorConstant} (assigned by Desmos).
      */

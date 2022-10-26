@@ -157,6 +157,18 @@ describe("parser", () => {
             });
         });
 
+        describe("label", () => {
+            it("xAxisLabel", () => {
+                const graph = parseGraph({ settings: ["xAxisLabel=this'35b3./, isa\" label"] });
+                expect(graph.settings.xAxisLabel).to.equal("this'35b3./, isa\" label");
+            });
+
+            it("yAxisLabel", () => {
+                const graph = parseGraph({ settings: ["yAxisLabel=this'35b3./, isa\" label"] });
+                expect(graph.settings.yAxisLabel).to.equal("this'35b3./, isa\" label");
+            });
+        });
+
         it("dimensions (width, height)", () => {
             let graph = parseGraph({ settings: ["width=200", "height=60"] });
             expect(graph.settings.height).to.equal(60);

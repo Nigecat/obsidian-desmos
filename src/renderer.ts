@@ -136,6 +136,14 @@ export class Renderer {
                     degreeMode: ${graphSettings.degreeMode === DegreeMode.Degrees},
                 };
 
+                if (${graphSettings.xAxisLabel !== undefined}) {
+                    options.xAxisLabel = "${JSON.stringify(graphSettings.xAxisLabel ?? "").slice(1, -1)}";
+                }
+
+                if (${graphSettings.yAxisLabel !== undefined}) {
+                    options.yAxisLabel = "${JSON.stringify(graphSettings.yAxisLabel ?? "").slice(1, -1)}";
+                }
+
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator-${hash}"), options);
                 calculator.setMathBounds({
                     left: ${graphSettings.left},
