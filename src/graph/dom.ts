@@ -11,6 +11,7 @@ export function bindEventListenersToGraph(element: HTMLElement) {
     let scrollLeft = 0;
     let scrollTop = 0;
     let velX = 0;
+    let velY = 0;
 
     // -----------------------------------------------------------------------------------
 
@@ -18,8 +19,10 @@ export function bindEventListenersToGraph(element: HTMLElement) {
 
     function momentumLoop() {
         graph.scrollLeft += velX;
+        graph.scrollTop += velY;
         velX *= 0.95;
-        if (Math.abs(velX) > 0.5) {
+        velY *= 0.95;
+        if (Math.abs(velX) > 0.5 || Math.abs(velY) > 0.5) {
             momentumID = requestAnimationFrame(momentumLoop);
         }
     }
@@ -59,11 +62,13 @@ export function bindEventListenersToGraph(element: HTMLElement) {
         const x = e.pageX - graph.offsetLeft;
         const y = e.pageY - graph.offsetTop;
         const prevScrollLeft = graph.scrollLeft;
+        const prevScrollTop = graph.scrollTop;
         const walk = (x - startX) * scrollSpeed;
         const jump = (y - startY) * scrollSpeed;
         graph.scrollLeft = scrollLeft - walk;
         graph.scrollTop = scrollTop - jump;
         velX = graph.scrollLeft - prevScrollLeft;
+        velY = graph.scrollTop - prevScrollTop;
     });
 
     graph.addEventListener("wheel", () => cancelMomentumTracking());
