@@ -1,5 +1,8 @@
+import { create, all } from "mathjs";
 import { ucast, calculateHash, Hash } from "../utils";
 import { GraphSettings, Equation, Color, ColorConstant, LineStyle, PointStyle, DegreeMode } from "./interface";
+
+const math = create(all, { number: "number" });
 
 /** The maximum dimensions of a graph */
 const MAX_SIZE = 99999;
@@ -297,7 +300,7 @@ export class Graph {
                         break;
                     }
 
-                    // Integer fields
+                    // Expression fields
                     case "top":
                     case "bottom":
                     case "left":
@@ -305,11 +308,10 @@ export class Graph {
                     case "width":
                     case "height": {
                         requiresValue();
-                        const num = parseFloat(value as string);
-                        if (Number.isNaN(num)) {
-                            throw new SyntaxError(`Field '${key}' must have an integer (or decimal) value`);
-                        }
-                        (graphSettings[key] as number) = num;
+
+                        // These fields can be simple math expressions (such as pi/2)
+                        graphSettings[key] = math.evaluate(value as string);
+
                         break;
                     }
 
