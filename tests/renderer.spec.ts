@@ -24,7 +24,10 @@ const TEST_PAGE = `<!DOCTYPE html><html><body><div id="desmos-graph"></div></bod
 const STUB = readFileSync(path.join(__dirname, "stub.js"), { encoding: "utf-8" });
 
 // Load plugin
-const PLUGIN = readFileSync(path.join(__dirname, "..", "main.js"), { encoding: "utf-8" });
+const PLUGIN = readFileSync(path.join(__dirname, "..", "main.js"), { encoding: "utf-8" }).replace(
+    /require\(['"]crypto['"]\)/gi,
+    "crypto"
+);
 
 // Determine tests
 const tests = readFileSync(path.join(__dirname, "graphs", "README.md"), { encoding: "utf-8" })
