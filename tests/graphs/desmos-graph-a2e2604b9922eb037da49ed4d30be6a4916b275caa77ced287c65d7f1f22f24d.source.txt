@@ -1,0 +1,5 @@
+left=0; right=2pi;
+top=2; bottom=-2;
+grid=false;
+---
+y=\sin(x)
