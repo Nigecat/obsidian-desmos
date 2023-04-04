@@ -37,12 +37,23 @@ function parseStringToEnum<V, T extends { [key: string]: V }>(obj: T, key: strin
     return objKey ? obj[objKey] : null;
 }
 
-function parseColor(value: string): Color | null {
+function parseColor(value: string, colors: string[][] | undefined): Color | null {
     // If the value is a valid hex colour
     if (value.startsWith("#")) {
         // Ensure the rest of the value is a valid alphanumeric string
         if (/^[0-9a-zA-Z]+$/.test(value.slice(1))) {
             return value as Color;
+        }
+        // Check if custom color
+    } else if (value.startsWith("--") && colors != undefined) {
+        value = value.slice(2);
+        var color: string[] | undefined = colors.find((obj) => obj[0] == value);
+        // Check that custom color exists
+        if (color != undefined) {
+            // Ensure the rest of the value is a valid alphanumeric string
+            if (/^[0-9a-zA-Z]+$/.test(color[1].slice(1))) {
+                return color[1] as Color;
+            }
         }
     }
 
@@ -58,6 +69,8 @@ export class Graph {
 
     /**  Supplementary error information if the source if valid but Desmos returns an error */
     public readonly potentialErrorHint?: PotentialErrorHint;
+
+    public static customColors?: string[][];
 
     public constructor(
         equations: Equation[],
@@ -174,7 +187,7 @@ export class Graph {
             }
 
             // If this is a valid color constant or hex code
-            const color = parseColor(segment);
+            const color = parseColor(segment, Graph.customColors);
             if (color) {
                 if (!equation.color) {
                     equation.color = color;
@@ -330,7 +343,7 @@ export class Graph {
                     // Color field
                     case "defaultColor": {
                         requiresValue();
-                        const color = parseColor(value as string);
+                        const color = parseColor(value as string, Graph.customColors);
                         if (color) {
                             graphSettings.defaultColor = color;
                         } else {
