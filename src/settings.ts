@@ -42,7 +42,7 @@ export function DEFAULT_SETTINGS(plugin: Desmos): Settings {
 /** Attempt to migrate the given settings object to the current structure */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function migrateSettings(plugin: Desmos, settings: any): Settings {
-    if (!settings.hasOwnProperty("use_legacy_desmos_api")) {
+    if (!Object.prototype.hasOwnProperty.call(settings, "use_legacy_desmos_api")) {
         settings.use_legacy_desmos_api = DEFAULT_SETTINGS_STATIC.use_legacy_desmos_api;
     }
 

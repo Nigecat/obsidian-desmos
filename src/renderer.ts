@@ -115,7 +115,7 @@ export class Renderer {
         }
 
         // Because of the electron sandboxing we have to do this inside an iframe (and regardless this is safer)
-        let api_version = settings.use_legacy_desmos_api ? "v1.5" : "v1.6";
+        const api_version = settings.use_legacy_desmos_api ? "v1.5" : "v1.6";
         const htmlHead = `<script id="desmos-api" src="https://www.desmos.com/api/${api_version}/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>`;
         const htmlBody = `
             <div id="calculator-${hash}" style="width: ${graphSettings.width}px; height: ${
