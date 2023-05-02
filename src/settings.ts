@@ -9,6 +9,8 @@ export enum CacheLocation {
 export interface Settings {
     /** The program version these settings were created in */
     version: string;
+    /** Whether to use an older version of the Desmos API (v1.5), this is required for offline mode to work */
+    use_legacy_desmos_api: boolean;
     // /** The debounce timer (in ms) */
     // debounce: number;
     cache: CacheSettings;
@@ -22,6 +24,7 @@ export interface CacheSettings {
 
 const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
     // debounce: 500,
+    use_legacy_desmos_api: false,
     cache: {
         enabled: true,
         location: CacheLocation.Memory,
@@ -37,8 +40,12 @@ export function DEFAULT_SETTINGS(plugin: Desmos): Settings {
 }
 
 /** Attempt to migrate the given settings object to the current structure */
-export function migrateSettings(plugin: Desmos, settings: object): Settings {
-    // todo (there is currently only one version of the settings interface)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function migrateSettings(plugin: Desmos, settings: any): Settings {
+    if (!Object.prototype.hasOwnProperty.call(settings, "use_legacy_desmos_api")) {
+        settings.use_legacy_desmos_api = DEFAULT_SETTINGS_STATIC.use_legacy_desmos_api;
+    }
+
     return settings as Settings;
 }
 
@@ -114,5 +121,20 @@ export class SettingsTab extends PluginSettingTab {
                     });
             }
         }
+
+        new Setting(containerEl)
+            .setName("Use Legacy Desmos API")
+            .setDesc(
+                "Whether to use a legacy version (v1.5) of the Desmos API over the current latest version, this must be enabled for offline usage to work as versions >1.5 require an internet connection. Enabling this will prevent any features from later versions from functioning correctly."
+            )
+            .addToggle((toggle) =>
+                toggle.setValue(this.plugin.settings.use_legacy_desmos_api).onChange(async (value) => {
+                    this.plugin.settings.use_legacy_desmos_api = value;
+                    await this.plugin.saveSettings();
+
+                    // Reset the display so the new state can render
+                    this.display();
+                })
+            );
     }
 }

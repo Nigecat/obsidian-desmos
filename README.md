@@ -168,4 +168,5 @@ For instance, if you wanted all graphs to be centered in the page content, you c
 
 # Offline Usage
 
-If you've rendered at least one graph while connected to the internet then any future graphs (irrespective of the cache setting) should be able to render (if they don't then make an issue here).
+If you've rendered at least one graph while connected to the internet then any future graphs (irrespective of the cache setting) should be able to render (if they don't then make an issue here).  
+*Requires enabling legacy API mode in the plugin settings.
