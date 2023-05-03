@@ -4,7 +4,7 @@ import { before, describe, it } from "mocha";
 import * as path from "path";
 import * as fs from "fs/promises";
 import * as puppeteer from "puppeteer";
-import { readFileSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 
 // Rendering can take awhile (especially if we have to load the browser context),
 //  so increase timeout to 10 seconds
@@ -30,10 +30,9 @@ const PLUGIN = readFileSync(path.join(__dirname, "..", "main.js"), { encoding: "
 );
 
 // Determine tests
-const tests = readFileSync(path.join(__dirname, "graphs", "README.md"), { encoding: "utf-8" })
-    .split(/\r?\n/g)
-    // remove title and description lines
-    .splice(3);
+const tests = readdirSync(path.join(__dirname, "graphs"))
+    .filter((file) => file.endsWith(".source.txt"))
+    .map((file) => file.substring(0, file.length - ".source.txt".length));
 
 class RendererTester {
     private readonly browser: puppeteer.Browser;
