@@ -92,9 +92,9 @@ class RendererTester {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function generateSvg(id: string) {
+async function generateRendererTest(id: string, source: string) {
     const framework = await RendererTester.create();
-    const source = await fs.readFile(path.join(__dirname, "graphs", `${id}.source.txt`), { encoding: "utf-8" });
+    await fs.writeFile(path.join(__dirname, "graphs", `${id}.source.txt`), source);
     const svg = await framework.render(source);
     await fs.writeFile(path.join(__dirname, "graphs", `${id}.svg`), svg);
 }
