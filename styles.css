@@ -1,0 +1,15 @@
+.desmos-graph-container {
+    max-width: 100%;
+    overflow: auto;
+}
+
+svg.desmos-graph {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    cursor: grab;
+}
+
+svg.desmos-graph:active {
+    cursor: grabbing;
+}
