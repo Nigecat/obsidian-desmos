@@ -21,6 +21,10 @@ export interface GraphSettings {
     xAxisLabel?: string;
     /** The label placed beside the y axis */
     yAxisLabel?: string;
+    /** Whether the x-axis should be logarithmic, defaults to `false */
+    xAxisLogarithmic: boolean;
+    /** Whether the y-axis should be logarithmic, defaults to `false */
+    yAxisLogarithmic: boolean;
     /** The default color to set all equations to.
      *  If this is not specified, each equation will be a random {@link ColorConstant} (assigned by Desmos).
      */

@@ -143,6 +143,9 @@ export class Renderer {
                     options.yAxisLabel = "${JSON.stringify(graphSettings.yAxisLabel ?? "").slice(1, -1)}";
                 }
 
+                options.xAxisScale = "${graphSettings.xAxisLogarithmic ? "logarithmic" : "linear"}";
+                options.yAxisScale = "${graphSettings.yAxisLogarithmic ? "logarithmic" : "linear"}";
+
                 const calculator = Desmos.GraphingCalculator(document.getElementById("calculator-${hash}"), options);
                 calculator.setMathBounds({
                     left: ${graphSettings.left},
