@@ -4,6 +4,7 @@ import { before, describe, it } from "mocha";
 import * as path from "path";
 import * as fs from "fs/promises";
 import * as puppeteer from "puppeteer";
+import * as looksSame from "looks-same";
 import { readdirSync, readFileSync } from "fs";
 
 // Rendering can take awhile (especially if we have to load the browser context),
@@ -13,9 +14,6 @@ const TIMEOUT = 10000;
 // Whether to run browser context in headless mode,
 //  this should only be set to `false` for debug purposes
 const HEADLESS = true;
-
-// A regex which can clean up the dynamic content of an svg
-const ID_MATCHER = /(id=".+?"|transform=".+?")/g;
 
 // Test html page with a div to render the graph into
 const TEST_PAGE = `<!DOCTYPE html><html><body><div id="desmos-graph"></div></body></html>`;
@@ -97,6 +95,24 @@ async function generateRendererTest(id: string, source: string) {
     await fs.writeFile(path.join(__dirname, "graphs", `${id}.source.txt`), source);
     const svg = await framework.render(source);
     await fs.writeFile(path.join(__dirname, "graphs", `${id}.svg`), svg);
+    await framework.dispose();
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function regenerateRenderTests() {
+    // Call with :: TS_NODE_COMPILER_OPTIONS={\"module\":\"commonjs\"} ts-node renderer.spec.ts
+
+    const framework = await RendererTester.create();
+
+    const files = (await fs.readdir(path.join(__dirname, "graphs"))).filter((file) => file.endsWith(".source.txt"));
+    for (const file of files) {
+        const id = file.substring(0, file.length - ".source.txt".length);
+        const source = (await fs.readFile(path.join(__dirname, "graphs", file))).toString();
+        const svg = await framework.render(source);
+        await fs.writeFile(path.join(__dirname, "graphs", `${id}.svg`), svg);
+    }
+
+    await framework.dispose();
 }
 
 describe("renderer", function () {
@@ -117,11 +133,15 @@ describe("renderer", function () {
             const source = await fs.readFile(path.join(__dirname, "graphs", `${test}.source.txt`), {
                 encoding: "utf-8",
             });
-            const render = await fs.readFile(path.join(__dirname, "graphs", `${test}.svg`), { encoding: "utf-8" });
             const svg = await framework.render(source);
+            const target = path.join(__dirname, "graphs", `${test}.svg`);
 
-            // Strip id values, as these are always different between renders
-            expect(render.replace(ID_MATCHER, "")).to.equal(svg.replace(ID_MATCHER, ""));
+            const { equal } = await looksSame(Buffer.from(svg.replace(/&nbsp;/g, " ")), await fs.readFile(target), {
+                ignoreAntialiasing: true,
+                antialiasingTolerance: 5,
+                tolerance: 5,
+            });
+            expect(equal).to.be.true;
         });
     }
 });

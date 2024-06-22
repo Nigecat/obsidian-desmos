@@ -1,7 +1,7 @@
 # Obsidian Desmos
 
 Render [Desmos](https://www.desmos.com/calculator) graphs right inside your notes.  
-Works both online and [offline](#offline-usage).
+Works both online and offline.
 
 ![demo](https://user-images.githubusercontent.com/48661288/159597221-afc18198-5a3f-4a58-a6b2-a3a552a92a7f.png)
 
@@ -165,8 +165,3 @@ For instance, if you wanted all graphs to be centered in the page content, you c
     margin-right: auto;
 }
 ```
-
-# Offline Usage
-
-If you've rendered at least one graph while connected to the internet then any future graphs (irrespective of the cache setting) should be able to render (if they don't then make an issue here).  
-*Requires enabling legacy API mode in the plugin settings.
