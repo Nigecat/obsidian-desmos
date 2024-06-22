@@ -71,6 +71,13 @@ export class Renderer {
             }
         }
 
+        if (!plugin.settings.renderer) {
+            // If the renderer is disabled, throw an error
+            throw new Error(
+                "Unable to render a new graph with the renderer disabled. Set the 'Renderer' option to true in the plugin config (requires filesystem caching) to allow rendering new graphs again. If you're trying to export, all graphs must be in the graph cache (meaning they must have been viewd before the renderer was disabled)."
+            );
+        }
+
         // Parse equations into a series of Desmos expressions
         const expressions: string[] = [];
         for (const equation of equations) {

@@ -15,7 +15,11 @@ Download the attached files from the [latest release](https://github.com/Nigecat
 
 # Exporting
 
-If you wish to export a note with a graph in it to a pdf then **caching must be enabled and the graph(s) must be in the cache** (meaning you've viewed it at least once) - as however Obsidian is doing the pdf export causes the Desmos API to break and never return a rendered graph.  
+If you wish to export a note with a graph in it to a pdf then   
+(a) Filesystem caching must be on  
+(b) All target graphs must be in the filesystem cache
+(c) The renderer must be disabled  
+(a) and (c) can be found in the plugin settings. (b) can be achieved by viewing all graphs at least once after enabling filesystem caching.
 
 # Usage
 

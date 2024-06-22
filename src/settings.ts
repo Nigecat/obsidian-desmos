@@ -11,6 +11,8 @@ export interface Settings {
     version: string;
     // /** The debounce timer (in ms) */
     // debounce: number;
+    /** Whether the renderer is enabled */
+    renderer: boolean;
     cache: CacheSettings;
 }
 
@@ -22,6 +24,7 @@ export interface CacheSettings {
 
 const DEFAULT_SETTINGS_STATIC: Omit<Settings, "version"> = {
     // debounce: 500,
+    renderer: true,
     cache: {
         enabled: true,
         location: CacheLocation.Memory,
@@ -39,9 +42,9 @@ export function DEFAULT_SETTINGS(plugin: Desmos): Settings {
 /** Attempt to migrate the given settings object to the current structure */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function migrateSettings(plugin: Desmos, settings: any): Settings {
-    // if (!Object.prototype.hasOwnProperty.call(settings, "use_legacy_desmos_api")) {
-    //     settings.use_legacy_desmos_api = DEFAULT_SETTINGS_STATIC.use_legacy_desmos_api;
-    // }
+    if (!Object.prototype.hasOwnProperty.call(settings, "renderer")) {
+        settings.renderer = DEFAULT_SETTINGS_STATIC.renderer;
+    }
 
     return settings as Settings;
 }
@@ -97,6 +100,9 @@ export class SettingsTab extends PluginSettingTab {
                         .setValue(this.plugin.settings.cache.location)
                         .onChange(async (value) => {
                             this.plugin.settings.cache.location = value as CacheLocation;
+                            if (this.plugin.settings.cache.location != CacheLocation.Filesystem) {
+                                this.plugin.settings.renderer = true;
+                            }
                             await this.plugin.saveSettings();
 
                             // Reset the display so the new state can render
@@ -116,6 +122,21 @@ export class SettingsTab extends PluginSettingTab {
                             await this.plugin.saveSettings();
                         });
                     });
+
+                new Setting(containerEl)
+                    .setName("Renderer")
+                    .setDesc(
+                        "Whether to enable the graph renderer. Turning this off will prevent any new graphs from rendering, but will ensure all cached graphs are rendered instantly. If this is disabled, filesystem caching is recommended. This setting should be used for external exporting (such as to a website or pdf)."
+                    )
+                    .addToggle((toggle) =>
+                        toggle.setValue(this.plugin.settings.renderer).onChange(async (value) => {
+                            this.plugin.settings.renderer = value;
+                            await this.plugin.saveSettings();
+
+                            // Reset the display so the new state can render
+                            this.display();
+                        })
+                    );
             }
         }
     }
