@@ -75,6 +75,10 @@ export default class Desmos extends Plugin {
             return await (await fetch(api)).text();
         }
 
+        if (this.desmosApiCache != null) {
+            return this.desmosApiCache;
+        }
+
         const dir = normalizePath(`.obsidian/plugins/${this.manifest.id}/vendor`);
         if (!(await app.vault.adapter.exists(dir))) {
             await app.vault.adapter.mkdir(dir);
