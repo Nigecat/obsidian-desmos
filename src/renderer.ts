@@ -3,6 +3,7 @@ import { ucast } from "./utils";
 import { renderError } from "./error";
 import { CacheLocation } from "./settings";
 import { normalizePath, Notice } from "obsidian";
+import { bindEventListenersToGraph } from "./graph/dom";
 import { DegreeMode, Graph, LineStyle, PointStyle } from "./graph";
 
 /** Parse an SVG into a DOM element */
@@ -220,7 +221,11 @@ export class Renderer {
 
                     const node = parseSVG(data);
                     node.setAttribute("class", "desmos-graph");
-                    el.appendChild(node);
+                    const parent = createDiv();
+                    parent.setAttribute("class", "desmos-graph-container");
+                    parent.appendChild(node);
+                    bindEventListenersToGraph(parent);
+                    el.appendChild(parent);
                     resolve(); // let caller know we are done rendering
 
                     const plugin = this.plugin;
