@@ -1,0 +1,3 @@
+xAxisLogarithmic;
+---
+y=\log_e(x)
