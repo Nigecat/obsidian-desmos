@@ -95,6 +95,7 @@ async function generateRendererTest(id: string, source: string) {
     await fs.writeFile(path.join(__dirname, "graphs", `${id}.source.txt`), source);
     const svg = await framework.render(source);
     await fs.writeFile(path.join(__dirname, "graphs", `${id}.svg`), svg);
+    await framework.dispose();
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -135,7 +136,7 @@ describe("renderer", function () {
             const svg = await framework.render(source);
             const target = path.join(__dirname, "graphs", `${test}.svg`);
 
-            const { equal } = await looksSame(Buffer.from(svg.replace("&nbsp;", "")), await fs.readFile(target));
+            const { equal } = await looksSame(Buffer.from(svg.replace(/&nbsp;/g, " ")), await fs.readFile(target));
             expect(equal).to.be.true;
         });
     }
