@@ -193,6 +193,12 @@ describe("parser", () => {
             expect(() => parseGraph({ settings: ["bottom=6", "top=6"] })).to.throw(SyntaxError);
         });
 
+        it("scales (xAxisLogarithmic, yAxisLogarithmic", () => {
+            const graph = parseGraph({ settings: ["xAxisLogarithmic", "yAxisLogarithmic"] });
+            expect(graph.settings.xAxisLogarithmic).to.be.true;
+            expect(graph.settings.yAxisLogarithmic).to.be.true;
+        });
+
         it("degreeMode", () => {
             let graph = parseGraph({}); // check default
             expect(graph.settings.degreeMode).to.equal(DegreeMode.Radians);

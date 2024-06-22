@@ -17,6 +17,8 @@ const DEFAULT_GRAPH_SETTINGS: GraphSettings = {
     grid: true,
     degreeMode: DegreeMode.Radians,
     hideAxisNumbers: false,
+    xAxisLogarithmic: false,
+    yAxisLogarithmic: false,
 };
 
 const DEFAULT_GRAPH_WIDTH = Math.abs(DEFAULT_GRAPH_SETTINGS.left) + Math.abs(DEFAULT_GRAPH_SETTINGS.right);
@@ -276,6 +278,8 @@ export class Graph {
                 switch (key) {
                     // Boolean fields
                     case "hideAxisNumbers":
+                    case "xAxisLogarithmic":
+                    case "yAxisLogarithmic":
                     case "grid": {
                         if (!value) {
                             (graphSettings[key] as boolean) = true;
