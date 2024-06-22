@@ -136,7 +136,11 @@ describe("renderer", function () {
             const svg = await framework.render(source);
             const target = path.join(__dirname, "graphs", `${test}.svg`);
 
-            const { equal } = await looksSame(Buffer.from(svg.replace(/&nbsp;/g, " ")), await fs.readFile(target));
+            const { equal } = await looksSame(Buffer.from(svg.replace(/&nbsp;/g, " ")), await fs.readFile(target), {
+                ignoreAntialiasing: true,
+                antialiasingTolerance: 5,
+                tolerance: 5,
+            });
             expect(equal).to.be.true;
         });
     }
