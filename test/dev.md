@@ -1,4 +1,3 @@
 ```desmos-graph
-f\left(x\right)=\sqrt{9-\left(x-3\right)^{2}}
-0<=y<=f(x)|x>=3|noline
+(\frac{11-\sqrt{29}}{2},1)|label
 ```

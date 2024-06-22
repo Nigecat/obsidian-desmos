@@ -97,11 +97,6 @@ async function generateRendererTest(id: string, source: string) {
     await fs.writeFile(path.join(__dirname, "graphs", `${id}.svg`), svg);
     await framework.dispose();
 }
-generateRendererTest(
-    "noline",
-    `f\\left(x\\right)=\\sqrt{9-\\left(x-3\\right)^{2}}
-0<=y<=f(x)|x>=3|noline`
-);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function regenerateRenderTests() {
