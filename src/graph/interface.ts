@@ -43,6 +43,7 @@ export interface Equation {
     color?: ColorConstant | HexColor;
     hidden?: boolean;
     label?: string;
+    line?: boolean;
 }
 
 export enum LineStyle {

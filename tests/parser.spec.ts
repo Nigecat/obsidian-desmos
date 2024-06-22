@@ -80,6 +80,11 @@ describe("parser", () => {
                 expect(graph.equations).to.deep.equal([{ equation: "y=x", hidden: true }]);
             });
 
+            it("noline", () => {
+                const graph = parseGraph({ equation: "y=x|noline" });
+                expect(graph.equations).to.deep.equal([{ equation: "y=x", line: false }]);
+            });
+
             it("style", () => {
                 const runStyleTests = (matrix: (PointStyle | LineStyle)[]) => {
                     matrix.forEach((style) => {

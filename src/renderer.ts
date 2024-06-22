@@ -80,6 +80,7 @@ export class Renderer {
                 label: equation.label,
                 hidden: equation.hidden,
                 showLabel: equation.label !== undefined,
+                lines: equation.line,
             };
 
             if (equation.restrictions) {

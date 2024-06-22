@@ -163,6 +163,12 @@ export class Graph {
                 continue;
             }
 
+            // If this is a valid `noline` tag
+            if (segmentUpperCase === "NOLINE") {
+                equation.line = false;
+                continue;
+            }
+
             // If this is a valid style constant
             const style: LineStyle | PointStyle | null =
                 parseStringToEnum(LineStyle, segmentUpperCase) ?? parseStringToEnum(PointStyle, segmentUpperCase);
